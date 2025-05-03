@@ -120,6 +120,7 @@
         let beantwoordeVragen = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
         let overgeslagenVragen = JSON.parse(localStorage.getItem('overgeslagenVragen')) || [];
         let vraagIndex;
+        let eersteLoad = true; // Nieuwe variabele om te controleren of het de eerste keer laden is
 
         function getVraag() {
             if (beantwoordeVragen.length + overgeslagenVragen.length >= vragen.length) {
@@ -130,12 +131,25 @@
                 return;
             }
 
-            let nieuweVraagIndex;
-            do {
-                nieuweVraagIndex = Math.floor(Math.random() * vragen.length);
-            } while (beantwoordeVragen.includes(nieuweVraagIndex) || overgeslagenVragen.includes(nieuweVraagIndex));
+            if (eersteLoad) { // Alleen bij de eerste keer laden of refreshen
+                let laagsteNietOvergeslagenIndex = -1;
+                for (let i = 0; i < vragen.length; i++) {
+                    if (!overgeslagenVragen.includes(i)) {
+                        laagsteNietOvergeslagenIndex = i;
+                        break;
+                    }
+                }
 
-            vraagIndex = nieuweVraagIndex;
+                if (laagsteNietOvergeslagenIndex !== -1) {
+                    vraagIndex = laagsteNietOvergeslagenIndex;
+                } else {
+                    // Als alle vragen zijn overgeslagen, kunnen we een willekeurige vraag kiezen of een eindbericht tonen.
+                    vraagIndex = Math.floor(Math.random() * vragen.length); // Tijdelijke oplossing
+                    document.getElementById('vraag-tekst').textContent = "Alle vragen zijn overgeslagen, maar hier is er toch een."; //temp
+                }
+                eersteLoad = false; // Zet op false zodat de vraag niet verandert bij antwoorden
+            }
+
             document.getElementById('vraag-nummer').textContent = `Vraag ${vraagIndex + 1}`;
             document.getElementById('vraag-tekst').textContent = vragen[vraagIndex];
             document.getElementById('antwoord-container').style.display = 'flex'; // Zorg dat input en knop zichtbaar zijn
@@ -171,9 +185,7 @@
             }
 
             feedbackContainer.style.display = 'block';
-            beantwoordeVragen.push(vraagIndex);
-            localStorage.setItem('beantwoordeVragen', JSON.stringify(beantwoordeVragen));
-
+            localStorage.setItem('laatstBeantwoordeVraag', vraagIndex); // Store the last answered question
             setTimeout(() => {
                 getVraag();
             }, 3000);
