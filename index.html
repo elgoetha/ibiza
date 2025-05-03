@@ -8,9 +8,67 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+        }
+        .vraag-nummer {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #6b7280; /* Text Gray 400 */
+            margin-bottom: 0.5rem;
+        }
+        .antwoord-input {
+            border-radius: 0.5rem; /* Rounded md */
+            padding: 0.75rem;      /* Padding 3 */
+            border: 1px solid #d1d5db;  /* Border Gray 300 */
+            width: 100%;
+            margin-bottom: 1rem;
+            font-size: 1rem;         /* Text base */
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); /* Inner shadow */
+        }
+        .antwoord-input:focus {
+            outline: none;
+            border-color: #3b82f6;  /* Border Blue 500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* Ring Blue 200 */
+        }
+        .verzend-knop {
+            border-radius: 9999px; /* Rounded full */
+            padding: 0.75rem;      /* Padding 3 */
+            background-color: #3b82f6;  /* Bg Blue 500 */
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition-duration: 300ms; /* Transition duration 300ms */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow */
+            aspect-ratio: 1; /* Keep it square */
+        }
+        .verzend-knop:hover {
+            background-color: #2563eb;  /* Bg Blue 700 on hover */
+        }
+        .feedback-bericht {
+            margin-top: 1rem;
+            font-weight: 500;
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.75rem;        /* py-3 px-4 */
+        }
+        .correct {
+            background-color: #f0fdf4; /* bg-green-100 */
+            color: #15803d;          /* text-green-600 */
+            border: 1px solid #16a34a;  /* border-green-500 */
+        }
+        .incorrect {
+            background-color: #fef2f2; /* bg-red-100 */
+            color: #b91c1c;          /* text-red-700 */
+            border: 1px solid #dc2626;  /* border-red-500 */
+        }
+        .overgeslagen {
+            background-color: #fef08a; /* bg-yellow-100 */
+            color: #78350f;          /* text-yellow-800 */
+            border: 1px solid #fcd34d;  /* border-yellow-300 */
         }
     </style>
     <script>
@@ -29,17 +87,20 @@
     <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
         <h1 class="text-2xl font-semibold text-blue-600 mb-6">Vraag voor de Vrijgezel</h1>
         <div id="vraag-container" class="mb-6">
-            <p id="vraag-tekst" class="text-lg text-gray-700">Laden van vraag...</p>
+            <p id="vraag-nummer" class="vraag-nummer"></p>
+            <p id="vraag-tekst" class="text-lg text-gray-700"></p>
+            <input type="text" id="antwoord-input" class="antwoord-input" placeholder="Jouw antwoord...">
+            <button id="verzend-knop" class="verzend-knop">
+                <span class="material-symbols-outlined">send</span>
+            </button>
         </div>
-        <div id="antwoord-container" style="display: none;">
-            <p class="text-green-600 font-medium">Antwoord gegeven! Bedankt.</p>
-        </div>
+        <div id="feedback-container" class="feedback-bericht" style="display: none;"></div>
         <div id="error-container" style="display: none;">
             <p class="text-red-600 font-medium">Er is een fout opgetreden.</p>
         </div>
-        <button id="volgende-vraag-knop" class="bg-gradient-to-r from-green-400 to-blue-500 hover:from-green-500 hover:to-blue-600 text-white font-semibold rounded-full py-3 px-6 transition duration-300 ease-in-out shadow-md focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2">
-            Volgende Vraag
-        </button>
+        <a href="overzicht.html" class="mt-6 inline-block text-blue-500 hover:text-blue-700 transition-colors duration-200 font-medium">
+            Bekijk alle vragen en sla over
+        </a>
     </div>
 
     <script>
@@ -57,37 +118,68 @@
         ];
 
         let beantwoordeVragen = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
+        let overgeslagenVragen = JSON.parse(localStorage.getItem('overgeslagenVragen')) || [];
         let vraagIndex;
 
         function getVraag() {
-            if (beantwoordeVragen.length >= vragen.length) {
-                document.getElementById('vraag-tekst').textContent = "Alle vragen zijn beantwoord! Bedankt voor het meedoen!";
-                document.getElementById('volgende-vraag-knop').style.display = 'none';
+            if (beantwoordeVragen.length + overgeslagenVragen.length >= vragen.length) {
+                document.getElementById('vraag-tekst').textContent = "Alle vragen zijn beantwoord of overgeslagen! Bedankt voor het meedoen!";
+                document.getElementById('vraag-nummer').textContent = "";
+                document.getElementById('antwoord-container').style.display = 'none';
+                document.querySelector('.mt-6').style.display = 'none'; // Verberg de link naar overzicht
                 return;
             }
 
             let nieuweVraagIndex;
             do {
                 nieuweVraagIndex = Math.floor(Math.random() * vragen.length);
-            } while (beantwoordeVragen.includes(nieuweVraagIndex));
+            } while (beantwoordeVragen.includes(nieuweVraagIndex) || overgeslagenVragen.includes(nieuweVraagIndex));
 
             vraagIndex = nieuweVraagIndex;
+            document.getElementById('vraag-nummer').textContent = `Vraag ${vraagIndex + 1}`;
             document.getElementById('vraag-tekst').textContent = vragen[vraagIndex];
-            document.getElementById('volgende-vraag-knop').disabled = false;
+            document.getElementById('antwoord-container').style.display = 'flex'; // Zorg dat input en knop zichtbaar zijn
+            document.getElementById('antwoord-input').value = ''; // Clear input field
+            document.getElementById('feedback-container').style.display = 'none'; // Clear feedback
         }
 
-        function markeerVraagAlsBeantwoord() {
+        function controleerAntwoord() {
+            const antwoordInput = document.getElementById('antwoord-input');
+            const feedbackContainer = document.getElementById('feedback-container');
+            const antwoord = antwoordInput.value.trim();
+
+             // Dummy antwoordencheck.  Pas aan indien je echte antwoorden hebt.
+            const correcteAntwoorden = [
+                "paars",
+                "onbekend",
+                "pizza",
+                "ja",
+                "wereldreis",
+                "dance_song", // Vervang dit
+                "gekke gewoonte", // Vervang dit
+                "iets geks",    // Vervang dit
+                "kat",
+                "Harry Potter",
+            ];
+
+            if (antwoord.toLowerCase() === correcteAntwoorden[vraagIndex].toLowerCase()) { // Vereenvoudigde check
+                feedbackContainer.textContent = "Correct! Goed gedaan!";
+                feedbackContainer.className = "feedback-bericht correct";
+            } else {
+                feedbackContainer.textContent = "Incorrect, probeer nog eens!";
+                feedbackContainer.className = "feedback-bericht incorrect";
+            }
+
+            feedbackContainer.style.display = 'block';
             beantwoordeVragen.push(vraagIndex);
             localStorage.setItem('beantwoordeVragen', JSON.stringify(beantwoordeVragen));
-            document.getElementById('antwoord-container').style.display = 'block';
-            document.getElementById('volgende-vraag-knop').disabled = true;
+
             setTimeout(() => {
-                document.getElementById('antwoord-container').style.display = 'none';
                 getVraag();
-            }, 2000);
+            }, 3000);
         }
 
-        document.getElementById('volgende-vraag-knop').addEventListener('click', markeerVraagAlsBeantwoord);
+        document.getElementById('verzend-knop').addEventListener('click', controleerAntwoord);
 
         getVraag();
     </script>
