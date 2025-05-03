@@ -19,14 +19,20 @@
             color: #6b7280; /* Text Gray 400 */
             margin-bottom: 0.5rem;
         }
+        .antwoord-input-container { /* Nieuwe container voor input en knop */
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
         .antwoord-input {
-            border-radius: 0.5rem; /* Rounded md */
+            border-radius: 0.5rem 0 0 0.5rem; /* Rounded md left */
             padding: 0.75rem;      /* Padding 3 */
             border: 1px solid #d1d5db;  /* Border Gray 300 */
             width: 100%;
-            margin-bottom: 1rem;
             font-size: 1rem;         /* Text base */
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); /* Inner shadow */
+            border-right: none; /* Remove right border */
         }
         .antwoord-input:focus {
             outline: none;
@@ -34,7 +40,7 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* Ring Blue 200 */
         }
         .verzend-knop {
-            border-radius: 9999px; /* Rounded full */
+            border-radius: 0 0.5rem 0.5rem 0; /* Rounded md right */
             padding: 0.75rem;      /* Padding 3 */
             background-color: #3b82f6;  /* Bg Blue 500 */
             color: #fff;
@@ -45,6 +51,7 @@
             transition-duration: 300ms; /* Transition duration 300ms */
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow */
             aspect-ratio: 1; /* Keep it square */
+            border: none; /* Remove border */
         }
         .verzend-knop:hover {
             background-color: #2563eb;  /* Bg Blue 700 on hover */
@@ -85,22 +92,21 @@
 </head>
 <body class="bg-gradient-to-r from-purple-400 to-pink-500 min-h-screen flex justify-center items-center py-10">
     <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
-        <h1 class="text-2xl font-semibold text-blue-600 mb-6">Vraag voor de Vrijgezel</h1>
+        <h1 class="text-2xl font-semibold text-blue-600 mb-6">Question for the bachelor</h1>
         <div id="vraag-container" class="mb-6">
             <p id="vraag-nummer" class="vraag-nummer"></p>
             <p id="vraag-tekst" class="text-lg text-gray-700"></p>
-            <input type="text" id="antwoord-input" class="antwoord-input" placeholder="Jouw antwoord...">
-            <button id="verzend-knop" class="verzend-knop">
-                <span class="material-symbols-outlined">send</span>
-            </button>
+            <div class="antwoord-input-container">
+                <input type="text" id="antwoord-input" class="antwoord-input" placeholder="Your answer...">
+                <button id="verzend-knop" class="verzend-knop">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </div>
         </div>
         <div id="feedback-container" class="feedback-bericht" style="display: none;"></div>
         <div id="error-container" style="display: none;">
             <p class="text-red-600 font-medium">Er is een fout opgetreden.</p>
         </div>
-        <a href="overzicht.html" class="mt-6 inline-block text-blue-500 hover:text-blue-700 transition-colors duration-200 font-medium">
-            Bekijk alle vragen en sla over
-        </a>
     </div>
 
     <script>
@@ -150,7 +156,7 @@
                 eersteLoad = false; // Zet op false zodat de vraag niet verandert bij antwoorden
             }
 
-            document.getElementById('vraag-nummer').textContent = `Vraag ${vraagIndex + 1}`;
+            document.getElementById('vraag-nummer').textContent = `Question ${vraagIndex + 1}`;
             document.getElementById('vraag-tekst').textContent = vragen[vraagIndex];
             document.getElementById('antwoord-container').style.display = 'flex'; // Zorg dat input en knop zichtbaar zijn
             document.getElementById('antwoord-input').value = ''; // Clear input field
