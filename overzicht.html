@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vrijgezellenfeest Ibiza - Vragenoverzicht</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .vraag-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;  /* py-3 px-4 */
+            margin-bottom: 0.5rem;    /* mb-2 */
+            border-radius: 0.375rem;  /* rounded-md */
+            background-color: #f7fafc;  /* bg-gray-100 */
+            border: 1px solid #e2e8f0;  /* border-gray-200 */
+        }
+        .vraag-item:nth-child(odd) {
+             background-color: #edf2f7; /* bg-gray-200 for odd items */
+        }
+
+        .vraag-tekst {
+            margin-right: 1rem;       /* mr-4 */
+            font-size: 1rem;         /* text-base */
+            color: #4a5568;          /* text-gray-700 */
+        }
+        .sla-over-knop {
+            background-color: #f59e0b;  /* bg-yellow-500 */
+            color: #fff;
+            padding: 0.5rem 1rem;      /* py-2 px-4 */
+            border-radius: 0.375rem;  /* rounded-md */
+            cursor: pointer;
+            transition-duration: 300ms; /* duration-300 */
+            font-size: 0.875rem;    /* text-sm */
+            display: flex; /* Use flexbox for icon alignment */
+            align-items: center; /* Vertically center icon and text */
+            gap: 0.5rem; /* Space between icon and text */
+        }
+        .sla-over-knop:hover {
+            background-color: #d97706;  /* bg-yellow-700 on hover */
+        }
+        .overgeslagen {
+            background-color: #fef08a; /* bg-yellow-100 */
+            color: #78350f;          /* text-yellow-800 */
+            border: 1px solid #fcd34d;  /* border-yellow-300 */
+        }
+         .beantwoord {
+            background-color: #f0fdf4; /* bg-green-100 */
+            color: #15803d;          /* text-green-600 */
+            border: 1px solid #16a34a;  /* border-green-500 */
+        }
+
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen py-10">
+    <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
+        <h1 class="text-2xl font-semibold text-blue-600 mb-6 text-center">Vragenoverzicht</h1>
+        <div id="vragen-lijst">
+            </div>
+        <a href="index.html" class="mt-6 inline-block text-blue-500 hover:text-blue-700 transition-colors duration-200 font-medium text-center block">
+            Terug naar de vraag
+        </a>
+    </div>
+
+    <script>
+        const vragen = [
+            "Wat is Aline's favoriete kleur?",
+            "Waar ging Aline's eerste vakantie heen?",
+            "Wat is Aline's lievelingseten?",
+            "Heeft Aline een verborgen talent?",
+            "Wat is Aline's grootste droom?",
+            "Welk lied doet Aline altijd dansen?",
+            "Wat is Aline's grappigste gewoonte?",
+            "Wat is het gekste dat Aline ooit heeft gedaan?",
+            "Wat is Aline's favoriete dier?",
+            "Welk boek of film kan Aline eindeloos herbekijken?",
+        ];
+
+        let beantwoordeVragen = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
+        let overgeslagenVragen = JSON.parse(localStorage.getItem('overgeslagenVragen')) || [];
+
+        const vragenLijst = document.getElementById('vragen-lijst');
+        vragenLijst.innerHTML = ''; // Maak de lijst leeg
+
+        vragen.forEach((vraag, index) => {
+            const vraagItem = document.createElement('div');
+            vraagItem.className = 'vraag-item';
+            vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p>`;
+
+            if (beantwoordeVragen.includes(index)) {
+                vraagItem.classList.add('beantwoord');
+                vraagItem.innerHTML += `<span class="text-green-600 font-medium">Beantwoord</span>`;
+            } else if (overgeslagenVragen.includes(index)) {
+                vraagItem.classList.add('overgeslagen');
+                vraagItem.innerHTML += `<span class="text-yellow-800 font-medium">Overgeslagen</span>`;
+            }
+             else {
+                const slaOverKnop = document.createElement('button');
+                slaOverKnop.className = 'sla-over-knop';
+                slaOverKnop.textContent = 'Sla over';
+                const icon = document.createElement('span');
+                icon.className = "material-symbols-outlined";
+                icon.textContent = "skip_forward";
+                slaOverKnop.prepend(icon); // Place icon before text
+
+                slaOverKnop.addEventListener('click', () => {
+                    overgeslagenVragen.push(index);
+                    localStorage.setItem('overgeslagenVragen', JSON.stringify(overgeslagenVragen));
+                    vraagItem.classList.add('overgeslagen');
+                    vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p><span class="text-yellow-800 font-medium">Overgeslagen</span>`;
+                     // Refresh the current page to reflect changes.
+                    window.location.reload();
+
+                });
+                vraagItem.appendChild(slaOverKnop);
+            }
+            vragenLijst.appendChild(vraagItem);
+        });
+    </script>
+</body>
+</html>
