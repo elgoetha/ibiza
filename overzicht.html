@@ -58,6 +58,43 @@
             border: 1px solid #16a34a;  /* border-green-500 */
         }
 
+        .reset-knop {
+            background-color: #dc2626; /* bg-red-500 */
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition-duration: 300ms;
+            font-size: 1rem;
+            margin-top: 1rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        .reset-knop:hover {
+            background-color: #b91c1c; /* bg-red-700 */
+        }
+
+        .niet-overslaan-knop {
+            background-color: #10b981; /* bg-emerald-500 */
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition-duration: 300ms;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .niet-overslaan-knop:hover {
+            background-color: #059669; /* bg-emerald-700 */
+        }
+
     </style>
     <script>
         tailwind.config = {
@@ -76,6 +113,7 @@
         <h1 class="text-2xl font-semibold text-blue-600 mb-6 text-center">Vragenoverzicht</h1>
         <div id="vragen-lijst">
             </div>
+        <button id="reset-knop" class="reset-knop">Reset alle vragen</button>
         <a href="index.html" class="mt-6 inline-block text-blue-500 hover:text-blue-700 transition-colors duration-200 font-medium text-center block">
             Terug naar de vraag
         </a>
@@ -97,6 +135,9 @@
 
         let beantwoordeVragen = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
         let overgeslagenVragen = JSON.parse(localStorage.getItem('overgeslagenVragen')) || [];
+        let laatsteBeantwoordeVraag = parseInt(localStorage.getItem('laatstBeantwoordeVraag'), 10);
+        let vraagAntwoordTimestamps = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {};
+
 
         const vragenLijst = document.getElementById('vragen-lijst');
         vragenLijst.innerHTML = ''; // Maak de lijst leeg
@@ -108,10 +149,45 @@
 
             if (beantwoordeVragen.includes(index)) {
                 vraagItem.classList.add('beantwoord');
-                vraagItem.innerHTML += `<span class="text-green-600 font-medium">Beantwoord</span>`;
+                const timestamp = vraagAntwoordTimestamps[index] ? new Date(vraagAntwoordTimestamps[index]).toLocaleString() : 'Onbekend';
+                vraagItem.innerHTML += `<span class="text-green-600 font-medium">Beantwoord op: ${timestamp}</span>`;
             } else if (overgeslagenVragen.includes(index)) {
                 vraagItem.classList.add('overgeslagen');
                 vraagItem.innerHTML += `<span class="text-yellow-800 font-medium">Overgeslagen</span>`;
+                const nietOverslaanKnop = document.createElement('button');
+                nietOverslaanKnop.className = 'niet-overslaan-knop';
+                nietOverslaanKnop.textContent = 'Neem terug';
+                const icon = document.createElement('span');
+                icon.className = "material-symbols-outlined";
+                icon.textContent = "undo";
+                nietOverslaanKnop.prepend(icon);
+
+                nietOverslaanKnop.addEventListener('click', () => {
+                    overgeslagenVragen = overgeslagenVragen.filter(qIndex => qIndex !== index);
+                    localStorage.setItem('overgeslagenVragen', JSON.stringify(overgeslagenVragen));
+                    vraagItem.classList.remove('overgeslagen');
+                    vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p>`;
+                    const slaOverKnop = document.createElement('button');
+                    slaOverKnop.className = 'sla-over-knop';
+                    slaOverKnop.textContent = 'Sla over';
+                    const icon = document.createElement('span');
+                    icon.className = "material-symbols-outlined";
+                    icon.textContent = "skip_forward";
+                    slaOverKnop.prepend(icon);
+
+                    slaOverKnop.addEventListener('click', () => {
+                        overgeslagenVragen.push(index);
+                        localStorage.setItem('overgeslagenVragen', JSON.stringify(overgeslagenVragen));
+                        vraagItem.classList.add('overgeslagen');
+                        vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p><span class="text-yellow-800 font-medium">Overgeslagen</span>`;
+                        window.location.reload();
+                    });
+                    vraagItem.appendChild(slaOverKnop);
+
+                    window.location.reload();
+
+                });
+                vraagItem.appendChild(nietOverslaanKnop);
             }
              else {
                 const slaOverKnop = document.createElement('button');
@@ -127,13 +203,23 @@
                     localStorage.setItem('overgeslagenVragen', JSON.stringify(overgeslagenVragen));
                     vraagItem.classList.add('overgeslagen');
                     vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p><span class="text-yellow-800 font-medium">Overgeslagen</span>`;
-                     // Refresh the current page to reflect changes.
+                     // Refresh the current page.
                     window.location.reload();
 
                 });
                 vraagItem.appendChild(slaOverKnop);
             }
             vragenLijst.appendChild(vraagItem);
+        });
+
+        document.getElementById('reset-knop').addEventListener('click', () => {
+            localStorage.removeItem('beantwoordeVragen');
+            localStorage.removeItem('overgeslagenVragen');
+            localStorage.removeItem('vraagAntwoordTimestamps');
+            beantwoordeVragen = [];
+            overgeslagenVragen = [];
+            vraagAntwoordTimestamps = {};
+            window.location.reload();
         });
     </script>
 </body>
