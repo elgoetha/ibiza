@@ -14,72 +14,78 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .question-number { /* Changed from .vraag-nummer */
+        .question-number {
             font-size: 1.25rem;
             font-weight: 500;
-            color: #6b7280; /* Text Gray 400 */
+            color: #6b7280;
             margin-bottom: 0.5rem;
         }
-        .answer-input-container { /* New container for input and button */
+        .answer-input-container {
             display: flex;
             align-items: center;
             width: 100%;
             margin-bottom: 1rem;
         }
-        .answer-input { /* Changed from .antwoord-input */
-            border-radius: 0.5rem 0 0 0.5rem; /* Rounded md left */
-            padding: 0.75rem;      /* Padding 3 */
-            border: 1px solid #d1d5db;  /* Border Gray 300 */
+        .answer-input {
+            border-radius: 0.5rem 0 0 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
             width: 100%;
-            font-size: 1rem;         /* Text base */
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); /* Inner shadow */
-            border-right: none; /* Remove right border */
+            font-size: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+            border-right: none;
         }
         .answer-input:focus {
             outline: none;
-            border-color: #3b82f6;  /* Border Blue 500 */
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* Ring Blue 200 */
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
-        .send-button { /* Changed from .verzend-knop */
-            border-radius: 0 0.5rem 0.5rem 0; /* Rounded md right */
-            padding: 0.75rem;      /* Padding 3 */
-            background-color: #3b82f6;  /* Bg Blue 500 */
+        .send-button {
+            border-radius: 0 0.5rem 0.5rem 0;
+            padding: 0.75rem;
+            background-color: #3b82f6;
             color: #fff;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition-duration: 300ms; /* Transition duration 300ms */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow */
-            aspect-ratio: 1; /* Keep it square */
-            border: none; /* Remove border */
+            transition-duration: 300ms;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            aspect-ratio: 1;
+            border: none;
         }
         .send-button:hover {
-            background-color: #2563eb;  /* Bg Blue 700 on hover */
+            background-color: #2563eb;
         }
-        .feedback-message { /* Changed from .feedback-bericht */
+        .feedback-message {
             margin-top: 1rem;
             font-weight: 500;
-            border-radius: 0.375rem; /* rounded-md */
-            padding: 0.75rem;        /* py-3 px-4 */
+            border-radius: 0.375rem;
+            padding: 0.75rem;
         }
         .correct {
-            background-color: #f0fdf4; /* bg-green-100 */
-            color: #15803d;          /* text-green-600 */
-            border: 1px solid #16a34a;  /* border-green-500 */
+            background-color: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #16a34a;
         }
         .incorrect {
-            background-color: #fef2f2; /* bg-red-100 */
-            color: #b91c1c;          /* text-red-700 */
-            border: 1px solid #dc2626;  /* border-red-500 */
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #dc2626;
         }
-        .skipped { /* Changed from .overgeslagen */
-            background-color: #fef08a; /* bg-yellow-100 */
-            color: #78350f;          /* text-yellow-800 */
-            border: 1px solid #fcd34d;  /* border-yellow-300 */
+        .skipped {
+            background-color: #fef08a;
+            color: #78350f;
+            border: 1px solid #fcd34d;
         }
     </style>
-    <script>
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Tailwind CSS configuration
         tailwind.config = {
             theme: {
                 extend: {
@@ -89,28 +95,17 @@
                 },
             },
         }
-    </script>
-</head>
-<body class="bg-gradient-to-r from-purple-400 to-pink-500 min-h-screen flex justify-center items-center py-10">
-    <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
-        <h1 class="text-2xl font-semibold text-blue-600 mb-6">Question for the bachelor</h1>
-        <div id="question-container" class="mb-6">
-            <p id="question-number" class="question-number"></p>
-            <p id="question-text" class="text-lg text-gray-700"></p>
-            <div class="answer-input-container">
-                <input type="text" id="answer-input" class="answer-input" placeholder="Your answer...">
-                <button id="send-button" class="send-button">
-                    <span class="material-symbols-outlined">send</span>
-                </button>
-            </div>
-        </div>
-        <div id="feedback-container" class="feedback-message" style="display: none;"></div>
-        <div id="error-container" style="display: none;">
-            <p class="text-red-600 font-medium">An error occurred.</p>
-        </div>
-    </div>
 
-    <script>
+        // Firebase Initialization
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        let app;
+        let db;
+        let auth;
+        let authReady = false; // Flag to ensure Firestore operations happen after auth
+        let unsubscribeFirestore = null; // To store the unsubscribe function for Firestore listener
+
         const questions = [
             "Who will have the biggest hangover after our wedding?", // 1
             "After how many dates did we sleep together?", // 2
@@ -130,9 +125,6 @@
         ];
 
         // IMPORTANT: Update these with the actual paths to your audio files!
-        // These paths are relative to your index.html file.
-        // Example: If your audio files are in a folder named 'audio' next to index.html,
-        // and the file for the first question is 'q0.mp3', then the path would be 'audio/q0.mp3'.
         const audioPaths = [
             "audio/0.mp3", // For question 1 (index 0)
             "audio/1.mp3", // For question 2 (index 1)
@@ -169,15 +161,92 @@
             "The size of Elias' hands and mouth", // 15
         ];
 
-        let answeredQuestions = JSON.parse(localStorage.getItem('beantwoordeVragen')) || []; // Using old key for compatibility
-        let skippedQuestions = JSON.parse(localStorage.getItem('overgeslagenVragen')) || []; // Using old key for compatibility
-        let questionAnswerTimestamps = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {}; // Using old key
+        // Local storage for answered questions and timestamps (per device/browser)
+        let answeredQuestionsLocal = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
+        let questionAnswerTimestampsLocal = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {};
 
-        let currentQuestionIndex; // Renamed from vraagIndex
-        let isFirstLoad = true; // Renamed from eersteLoad
+        // Shared state for skipped questions (from Firestore)
+        let skippedQuestionsShared = [];
 
-        function loadQuestion() { // Renamed from getVraag
-            if (answeredQuestions.length + skippedQuestions.length >= questions.length) {
+        let currentQuestionIndex;
+        let isFirstLoad = true;
+
+        async function initFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log("Firebase Auth State Changed: Logged in as", user.uid);
+                        authReady = true;
+                        // Setup Firestore listener only after authentication
+                        setupFirestoreListener();
+                        // Load the question once Firebase is ready
+                        loadQuestion();
+                    } else {
+                        console.log("Firebase Auth State Changed: Logged out or no user");
+                        authReady = false;
+                        if (unsubscribeFirestore) {
+                            unsubscribeFirestore(); // Clean up listener on logout
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase or signing in:", error);
+                document.getElementById('error-container').style.display = 'block';
+                document.getElementById('error-container').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function setupFirestoreListener() {
+            if (unsubscribeFirestore) {
+                unsubscribeFirestore(); // Unsubscribe previous listener if exists
+            }
+
+            const skippedStatusDocRef = doc(db, `artifacts/${appId}/public/data/skipped_questions/status`);
+
+            unsubscribeFirestore = onSnapshot(skippedStatusDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    skippedQuestionsShared = docSnap.data().skippedIndices || [];
+                    console.log("Skipped questions updated from Firestore:", skippedQuestionsShared);
+                } else {
+                    skippedQuestionsShared = [];
+                    console.log("No skipped questions document found in Firestore.");
+                }
+                // Reload the question immediately if this is not the first load
+                // (to react to changes from other devices)
+                if (!isFirstLoad) {
+                    loadQuestion();
+                }
+            }, (error) => {
+                console.error("Error fetching skipped questions from Firestore:", error);
+                document.getElementById('error-container').style.display = 'block';
+                document.getElementById('error-container').textContent = `Error loading skipped questions: ${error.message}`;
+            });
+        }
+
+
+        function loadQuestion() {
+            if (!authReady) {
+                console.log("Auth not ready, delaying question load.");
+                return;
+            }
+
+            // Check if all questions are answered or globally skipped
+            const remainingQuestions = questions.filter((_, i) =>
+                !answeredQuestionsLocal.includes(i) && !skippedQuestionsShared.includes(i)
+            );
+
+            if (remainingQuestions.length === 0) {
                 document.getElementById('question-text').textContent = "All questions have been answered or skipped! Thanks for participating!";
                 document.getElementById('question-number').textContent = "";
                 document.getElementById('answer-input-container').style.display = 'none';
@@ -185,37 +254,36 @@
                 return;
             }
 
-            // Only load a new question on the initial page load
-            if (isFirstLoad) {
-                let lowestNonSkippedIndex = -1;
-                for (let i = 0; i < questions.length; i++) {
-                    if (!skippedQuestions.includes(i)) {
-                        lowestNonSkippedIndex = i;
-                        break;
-                    }
+            // Find the lowest-numbered question that hasn't been skipped globally
+            let lowestNonSkippedIndex = -1;
+            for (let i = 0; i < questions.length; i++) {
+                // Only consider questions not skipped globally (via Firestore)
+                if (!skippedQuestionsShared.includes(i)) {
+                    lowestNonSkippedIndex = i;
+                    break;
                 }
+            }
 
-                if (lowestNonSkippedIndex !== -1) {
-                    currentQuestionIndex = lowestNonSkippedIndex;
-                } else {
-                    // This case means all questions are either answered or skipped.
-                    document.getElementById('question-text').textContent = "All questions have been skipped! Please reset from the overview page if you wish to answer them.";
-                    document.getElementById('question-number').textContent = "";
-                    document.getElementById('answer-input-container').style.display = 'none';
-                    document.getElementById('feedback-container').style.display = 'none';
-                    return; // Exit if no more questions to show
-                }
-                isFirstLoad = false; // Set to false so the question doesn't change on answering
+            if (lowestNonSkippedIndex !== -1) {
+                currentQuestionIndex = lowestNonSkippedIndex;
+            } else {
+                // This case should ideally be caught by the remainingQuestions.length check,
+                // but as a fallback if all are skipped globally.
+                document.getElementById('question-text').textContent = "All questions have been skipped! Please reset from the overview page if you wish to answer them.";
+                document.getElementById('question-number').textContent = "";
+                document.getElementById('answer-input-container').style.display = 'none';
+                document.getElementById('feedback-container').style.display = 'none';
+                return;
             }
 
             document.getElementById('question-number').textContent = `Question ${currentQuestionIndex + 1}`;
             document.getElementById('question-text').textContent = questions[currentQuestionIndex];
-            document.getElementById('answer-input').value = ''; // Clear input field
-            document.getElementById('feedback-container').style.display = 'none'; // Clear feedback message
-            document.getElementById('answer-input-container').style.display = 'flex'; // Ensure input and button are visible
+            document.getElementById('answer-input').value = '';
+            document.getElementById('feedback-container').style.display = 'none';
+            document.getElementById('answer-input-container').style.display = 'flex';
         }
 
-        function checkAnswer() { // Renamed from controleerAntwoord
+        function checkAnswer() {
             const answerInput = document.getElementById('answer-input');
             const feedbackContainer = document.getElementById('feedback-container');
             const answer = answerInput.value.trim();
@@ -230,14 +298,13 @@
 
             feedbackContainer.style.display = 'block';
 
-            // Store the timestamp and mark as answered
-            questionAnswerTimestamps[currentQuestionIndex] = new Date().toISOString();
-            localStorage.setItem('vraagAntwoordTimestamps', JSON.stringify(questionAnswerTimestamps));
+            // Store the timestamp and mark as answered locally
+            questionAnswerTimestampsLocal[currentQuestionIndex] = new Date().toISOString();
+            localStorage.setItem('vraagAntwoordTimestamps', JSON.stringify(questionAnswerTimestampsLocal));
 
-            // Add to answered questions if not already there
-            if (!answeredQuestions.includes(currentQuestionIndex)) {
-                answeredQuestions.push(currentQuestionIndex);
-                localStorage.setItem('beantwoordeVragen', JSON.stringify(answeredQuestions));
+            if (!answeredQuestionsLocal.includes(currentQuestionIndex)) {
+                answeredQuestionsLocal.push(currentQuestionIndex);
+                localStorage.setItem('beantwoordeVragen', JSON.stringify(answeredQuestionsLocal));
             }
 
             // Play audio if available
@@ -247,10 +314,10 @@
             }
         }
 
-        document.getElementById('send-button').addEventListener('click', checkAnswer); // Renamed from verzend-knop
+        document.getElementById('send-button').addEventListener('click', checkAnswer);
 
-        // Initial load of the question when the page loads
-        document.addEventListener('DOMContentLoaded', loadQuestion);
+        // Initialize Firebase and load question on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', initFirebase);
     </script>
 </body>
 </html>
