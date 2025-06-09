@@ -111,16 +111,21 @@
 
     <script>
         const vragen = [
-            "Wat is Aline's favoriete kleur?",
-            "Waar ging Aline's eerste vakantie heen?",
-            "Wat is Aline's lievelingseten?",
-            "Heeft Aline een verborgen talent?",
-            "Wat is Aline's grootste droom?",
-            "Welk lied doet Aline altijd dansen?",
-            "Wat is Aline's grappigste gewoonte?",
-            "Wat is het gekste dat Aline ooit heeft gedaan?",
-            "Wat is Aline's favoriete dier?",
-            "Welk boek of film kan Aline eindeloos herbekijken?",
+            "Wie zal de grootste kater hebben na onze trouw?", // 1
+            "⁠Na hoeveel dates hebben we met elkaar geslapen?", // 2
+            "⁠Wat is Aline haar lievelingsdessert op restaurant?", // 3
+            "⁠Wat wilde Aline later worden als kind?", // 4
+            "⁠Wat is de ultieme droomvakantiebestemming van Aline?", // 5
+            "Hoeveel exen heeft Aline?", // 6
+            "⁠Wat is Aline haar favoriete lingeriesetje uit haar kleerkast?", // 7
+            "⁠Wie zei als eerste: ik hou van jou?", // 8
+            "⁠Waar ging jullie eerste ruzie over?", // 9
+            "Als Aline één maaltijd de rest van haar leven zou moeten eten, welke zou het dan zijn?", // 10
+            "⁠Wat is Aline haar guilty pleasure in haar leven?", // 11
+            "⁠Wat zegt Aline meestal als ze afscheid neemt aan de telefoon?", // 12
+            "⁠Met welke snack mag je Aline s nachts wakker maken?", // 13
+            "⁠Wat is een gek of grappig ritueeltje dat jullie samen hebben?", // 14
+            "Wat is de cupmaat van Aline?", // 15
         ];
 
         let beantwoordeVragen = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
@@ -170,16 +175,21 @@
 
              // Dummy antwoordencheck.  Pas aan indien je echte antwoorden hebt.
             const correcteAntwoorden = [
-                "paars",
-                "onbekend",
-                "pizza",
-                "ja",
-                "wereldreis",
-                "dance_song", // Vervang dit
-                "gekke gewoonte", // Vervang dit
-                "iets geks",    // Vervang dit
-                "kat",
-                "Harry Potter",
+                "Elias", // 1
+                "⁠Vier", // 2
+                "Warme appeltaart met bolletje vanille ijs", // 3
+                "⁠Kapster", // 4
+                "Miraflores", // 5
+                "Twee", // 6
+                "⁠Geen, Elias heeft beloofd er eentje te kopen", // 7
+                "Aline", // 8
+                "⁠Elias was kwaad toen Aline chili con carne aan het koken was", // 9
+                "Pasta", // 10
+                "⁠Familie kijken", // 11
+                "⁠Dag liefje", // 12
+                "⁠Geen enkele - maak mij niet wakker wtf", // 13
+                "⁠Samen gek, belachelijk en kinderachtig doen. Superfreaky", // 14
+                "De grootte van Elias zijn handen en mond", // 15
             ];
 
             if (antwoord.toLowerCase() === correcteAntwoorden[vraagIndex].toLowerCase()) { // Vereenvoudigde check
