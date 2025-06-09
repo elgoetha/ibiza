@@ -390,23 +390,11 @@
                 localStorage.setItem('beantwoordeVragen', JSON.stringify(answeredQuestionsLocal));
             }
 
-            // Play audio if available
-            if (audioPaths[currentQuestionIndex]) {
-                const audio = new Audio(audioPaths[currentQuestionIndex]);
-                audio.play().then(() => {
-                    if (playAudioButton) playAudioButton.style.display = 'block'; // Show play button after initial play
-                }).catch(e => {
-                    console.error("Audio playback failed:", e);
-                    // Optionally show an error to the user if audio fails
-                    const errorContainer = document.getElementById('error-container');
-                    if (errorContainer && errorContainer.querySelector('p')) {
-                        errorContainer.querySelector('p').textContent = `Audio playback failed: ${e.message}. .opus files might not be supported on your browser.`;
-                        errorContainer.style.display = 'block';
-                    }
-                });
+            // Make the play audio button visible after an answer is submitted
+            if (playAudioButton) {
+                playAudioButton.style.display = 'block';
             }
-
-            // IMPORTANT: No call to loadQuestion() here! The question stays until manual refresh or skip on overview page.
+            // Audio will only play when the playAudioButton is clicked.
         }
 
         // The send button listener is now attached within the DOMContentLoaded block above.
