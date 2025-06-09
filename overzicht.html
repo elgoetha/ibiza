@@ -115,8 +115,7 @@
         }
 
         // Firebase Initialization
-        // VERVANG DEZE LIJNEN MET JE WERKELIJKE FIREBASE CONFIGURATIE EN PROJECT ID
-        const appId = "ibiza-cfb1f"; // Jouw Firebase Project ID
+        const appId = "ibiza-cfb1f"; // Your Firebase Project ID
         const firebaseConfig = {
             apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
             authDomain: "ibiza-cfb1f.firebaseapp.com",
@@ -125,14 +124,13 @@
             messagingSenderId: "432344257805",
             appId: "1:432344257805:web:05260234475d049a644c44"
         };
-        // EINDE VAN FIREBASE CONFIGURATIE
 
-        const app = initializeApp(firebaseConfig); // Initialize Firebase app
-        const db = getFirestore(app); // Get Firestore instance
-        const auth = getAuth(app); // Get Auth instance
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        let authReady = false; // Flag to ensure Firestore operations happen after auth
-        let unsubscribeFirestore = null; // To store the unsubscribe function for Firestore listener
+        let authReady = false;
+        let unsubscribeFirestore = null;
 
 
         const questions = [
@@ -169,22 +167,17 @@
             } else {
                 console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
                 try {
-                    // Attempt anonymous sign-in if not authenticated
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    // Only attempt anonymous sign-in if not currently authenticated
+                    if (!auth.currentUser) {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
                     }
                 } catch (error) {
                     console.error("Error during anonymous sign-in:", error);
-                    // No need to show error here, onAuthStateChanged will be called again with null user if it failed
                     authReady = false; // Ensure authReady is false if sign-in fails
-                }
-                if (!auth.currentUser) { // If still no user after attempt
-                    authReady = false;
-                    if (unsubscribeFirestore) {
-                        unsubscribeFirestore(); // Clean up listener if sign-in fails
-                    }
                 }
             }
         });
@@ -230,6 +223,10 @@
 
         function renderQuestionsList() {
             const questionsList = document.getElementById('questions-list');
+            if (!questionsList) { // Added null check
+                console.error("Error: 'questions-list' not found in DOM for rendering.");
+                return;
+            }
             questionsList.innerHTML = ''; // Clear the list before re-rendering
 
             questions.forEach((question, index) => {
