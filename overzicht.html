@@ -14,53 +14,53 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .question-item { /* Changed from .vraag-item */
+        .question-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 1rem;  /* py-3 px-4 */
-            margin-bottom: 0.5rem;    /* mb-2 */
-            border-radius: 0.375rem;  /* rounded-md */
-            background-color: #f7fafc;  /* bg-gray-100 */
-            border: 1px solid #e2e8f0;  /* border-gray-200 */
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.375rem;
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
         }
         .question-item:nth-child(odd) {
-             background-color: #edf2f7; /* bg-gray-200 for odd items */
+             background-color: #edf2f7;
         }
 
-        .question-text { /* Changed from .vraag-tekst */
-            margin-right: 1rem;       /* mr-4 */
-            font-size: 1rem;         /* text-base */
-            color: #4a5568;          /* text-gray-700 */
+        .question-text {
+            margin-right: 1rem;
+            font-size: 1rem;
+            color: #4a5568;
         }
-        .skip-button { /* Changed from .sla-over-knop */
-            background-color: #f59e0b;  /* bg-yellow-500 */
+        .skip-button {
+            background-color: #f59e0b;
             color: #fff;
-            padding: 0.5rem 1rem;      /* py-2 px-4 */
-            border-radius: 0.375rem;  /* rounded-md */
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
             cursor: pointer;
-            transition-duration: 300ms; /* duration-300 */
-            font-size: 0.875rem;    /* text-sm */
-            display: flex; /* Use flexbox for icon alignment */
-            align-items: center; /* Vertically center icon and text */
-            gap: 0.5rem; /* Space between icon and text */
+            transition-duration: 300ms;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         .skip-button:hover {
-            background-color: #d97706;  /* bg-yellow-700 on hover */
+            background-color: #d97706;
         }
-        .skipped { /* Changed from .overgeslagen */
-            background-color: #fef08a; /* bg-yellow-100 */
-            color: #78350f;          /* text-yellow-800 */
-            border: 1px solid #fcd34d;  /* border-yellow-300 */
+        .skipped {
+            background-color: #fef08a;
+            color: #78350f;
+            border: 1px solid #fcd34d;
         }
-         .answered { /* Changed from .beantwoord */
-            background-color: #f0fdf4; /* bg-green-100 */
-            color: #15803d;          /* text-green-600 */
-            border: 1px solid #16a34a;  /* border-green-500 */
+         .answered {
+            background-color: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #16a34a;
         }
 
-        .reset-button { /* Changed from .reset-knop */
-            background-color: #dc2626; /* bg-red-500 */
+        .reset-button {
+            background-color: #dc2626;
             color: #fff;
             padding: 0.75rem 1.5rem;
             border-radius: 0.375rem;
@@ -75,11 +75,11 @@
         }
 
         .reset-button:hover {
-            background-color: #b91c1c; /* bg-red-700 */
+            background-color: #b91c1c;
         }
 
-        .unskip-button { /* Changed from .niet-overslaan-knop */
-            background-color: #10b981; /* bg-emerald-500 */
+        .unskip-button {
+            background-color: #10b981;
             color: #fff;
             padding: 0.5rem 1rem;
             border-radius: 0.375rem;
@@ -93,11 +93,17 @@
         }
 
         .unskip-button:hover {
-            background-color: #059669; /* bg-emerald-700 */
+            background-color: #059669;
         }
 
     </style>
-    <script>
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Tailwind CSS configuration
         tailwind.config = {
             theme: {
                 extend: {
@@ -107,21 +113,19 @@
                 },
             },
         }
-    </script>
-</head>
-<body class="bg-gray-100 min-h-screen py-10">
-    <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
-        <h1 class="text-2xl font-semibold text-blue-600 mb-6 text-center">Questions Overview</h1>
-        <div id="questions-list"> <!-- Changed from #vragen-lijst -->
-            </div>
-        <button id="reset-button" class="reset-button">Reset All Questions</button> <!-- Changed from #reset-knop -->
-        <a href="index.html" class="mt-6 inline-block text-blue-500 hover:text-blue-700 transition-colors duration-200 font-medium text-center block">
-            Back to Question
-        </a>
-    </div>
 
-    <script>
-        const questions = [ // Changed from vragen
+        // Firebase Initialization
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        let app;
+        let db;
+        let auth;
+        let authReady = false; // Flag to ensure Firestore operations happen after auth
+        let unsubscribeFirestore = null; // To store the unsubscribe function for Firestore listener
+
+
+        const questions = [
             "Who will have the biggest hangover after our wedding?", // 1
             "After how many dates did we sleep together?", // 2
             "What is Aline's favorite restaurant dessert?", // 3
@@ -139,94 +143,149 @@
             "What is Aline's cup size?", // 15
         ];
 
-        let answeredQuestions = JSON.parse(localStorage.getItem('beantwoordeVragen')) || []; // Using old key for compatibility
-        let skippedQuestions = JSON.parse(localStorage.getItem('overgeslagenVragen')) || []; // Using old key for compatibility
-        // removed laatsteBeantwoordeVraag as it's not strictly used for logic
-        let questionAnswerTimestamps = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {}; // Using old key for compatibility
+        // Local storage for answered questions and timestamps
+        let answeredQuestionsLocal = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
+        let questionAnswerTimestampsLocal = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {};
+
+        // Shared state for skipped questions (from Firestore)
+        let skippedQuestionsShared = [];
+
+        async function initFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log("Firebase Auth State Changed: Logged in as", user.uid);
+                        authReady = true;
+                        // Setup Firestore listener only after authentication
+                        setupFirestoreListener();
+                    } else {
+                        console.log("Firebase Auth State Changed: Logged out or no user");
+                        authReady = false;
+                        if (unsubscribeFirestore) {
+                            unsubscribeFirestore(); // Clean up listener on logout
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase or signing in:", error);
+                // Display error to the user if needed
+            }
+        }
+
+        function setupFirestoreListener() {
+            if (unsubscribeFirestore) {
+                unsubscribeFirestore(); // Unsubscribe previous listener if exists
+            }
+
+            const skippedStatusDocRef = doc(db, `artifacts/${appId}/public/data/skipped_questions/status`);
+
+            unsubscribeFirestore = onSnapshot(skippedStatusDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    skippedQuestionsShared = docSnap.data().skippedIndices || [];
+                    console.log("Skipped questions updated from Firestore:", skippedQuestionsShared);
+                } else {
+                    skippedQuestionsShared = [];
+                    console.log("No skipped questions document found in Firestore.");
+                }
+                renderQuestionsList(); // Re-render the list whenever shared state changes
+            }, (error) => {
+                console.error("Error fetching skipped questions from Firestore:", error);
+                // Display error to the user if needed
+            });
+        }
 
 
-        const questionsList = document.getElementById('questions-list'); // Changed from vragenLijst
-        questionsList.innerHTML = ''; // Clear the list
+        async function updateSkippedQuestionsInFirestore(newSkippedArray) {
+            if (!authReady) {
+                console.error("Firebase not ready to update skipped questions.");
+                return;
+            }
+            try {
+                const skippedStatusDocRef = doc(db, `artifacts/${appId}/public/data/skipped_questions/status`);
+                await setDoc(skippedStatusDocRef, { skippedIndices: newSkippedArray }, { merge: true });
+                console.log("Skipped questions updated in Firestore:", newSkippedArray);
+            } catch (error) {
+                console.error("Error updating skipped questions in Firestore:", error);
+                // Display error to the user if needed
+            }
+        }
 
-        questions.forEach((question, index) => { // Changed from vraag
-            const questionItem = document.createElement('div'); // Changed from vraagItem
-            questionItem.className = 'question-item';
-            questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p>`; // Changed from vraag-tekst
+        function renderQuestionsList() {
+            const questionsList = document.getElementById('questions-list');
+            questionsList.innerHTML = ''; // Clear the list before re-rendering
 
-            if (answeredQuestions.includes(index)) {
-                questionItem.classList.add('answered'); // Changed from beantwoord
-                const timestamp = questionAnswerTimestamps[index] ? new Date(questionAnswerTimestamps[index]).toLocaleString() : 'Unknown'; // Changed from Onbekend
-                questionItem.innerHTML += `<span class="text-green-600 font-medium">Answered on: ${timestamp}</span>`; // Changed from Beantwoord op
-            } else if (skippedQuestions.includes(index)) {
-                questionItem.classList.add('skipped'); // Changed from overgeslagen
-                questionItem.innerHTML += `<span class="text-yellow-800 font-medium">Skipped</span>`; // Changed from Overgeslagen
-                const unskipButton = document.createElement('button'); // Changed from nietOverslaanKnop
-                unskipButton.className = 'unskip-button';
-                unskipButton.textContent = 'Unskip'; // Changed from Neem terug
-                const icon = document.createElement('span');
-                icon.className = "material-symbols-outlined";
-                icon.textContent = "undo";
-                unskipButton.prepend(icon);
+            questions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p>`;
 
-                unskipButton.addEventListener('click', () => {
-                    skippedQuestions = skippedQuestions.filter(qIndex => qIndex !== index);
-                    localStorage.setItem('overgeslagenVragen', JSON.stringify(skippedQuestions));
-                    questionItem.classList.remove('skipped'); // Changed from overgeslagen
-                    questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p>`; // Changed from vraag-tekst
-                    const skipButton = document.createElement('button'); // Changed from slaOverKnop
+                if (answeredQuestionsLocal.includes(index)) {
+                    questionItem.classList.add('answered');
+                    const timestamp = questionAnswerTimestampsLocal[index] ? new Date(questionAnswerTimestampsLocal[index]).toLocaleString() : 'Unknown';
+                    questionItem.innerHTML += `<span class="text-green-600 font-medium">Answered on: ${timestamp}</span>`;
+                } else if (skippedQuestionsShared.includes(index)) { // Use shared state for skipped
+                    questionItem.classList.add('skipped');
+                    questionItem.innerHTML += `<span class="text-yellow-800 font-medium">Skipped</span>`;
+                    const unskipButton = document.createElement('button');
+                    unskipButton.className = 'unskip-button';
+                    unskipButton.textContent = 'Unskip';
+                    const icon = document.createElement('span');
+                    icon.className = "material-symbols-outlined";
+                    icon.textContent = "undo";
+                    unskipButton.prepend(icon);
+
+                    unskipButton.addEventListener('click', async () => {
+                        const newSkippedArray = skippedQuestionsShared.filter(qIndex => qIndex !== index);
+                        await updateSkippedQuestionsInFirestore(newSkippedArray);
+                        // UI will be updated by the onSnapshot listener
+                    });
+                    questionItem.appendChild(unskipButton);
+                } else {
+                    const skipButton = document.createElement('button');
                     skipButton.className = 'skip-button';
-                    skipButton.textContent = 'Skip'; // Changed from Sla over
+                    skipButton.textContent = 'Skip';
                     const icon = document.createElement('span');
                     icon.className = "material-symbols-outlined";
                     icon.textContent = "skip_forward";
                     skipButton.prepend(icon);
 
-                    skipButton.addEventListener('click', () => {
-                        skippedQuestions.push(index);
-                        localStorage.setItem('overgeslagenVragen', JSON.stringify(skippedQuestions));
-                        questionItem.classList.add('skipped'); // Changed from overgeslagen
-                        questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p><span class="text-yellow-800 font-medium">Skipped</span>`; // Changed from vraag-tekst, Overgeslagen
-                        window.location.reload();
+                    skipButton.addEventListener('click', async () => {
+                        const newSkippedArray = [...skippedQuestionsShared, index];
+                        await updateSkippedQuestionsInFirestore(newSkippedArray);
+                        // UI will be updated by the onSnapshot listener
                     });
                     questionItem.appendChild(skipButton);
+                }
+                questionsList.appendChild(questionItem);
+            });
+        }
 
-                    window.location.reload(); // Reload to refresh the list and potentially index.html if active on another tab
-
-                });
-                questionItem.appendChild(unskipButton);
-            }
-             else {
-                const skipButton = document.createElement('button'); // Changed from slaOverKnop
-                skipButton.className = 'skip-button';
-                skipButton.textContent = 'Skip'; // Changed from Sla over
-                const icon = document.createElement('span');
-                icon.className = "material-symbols-outlined";
-                icon.textContent = "skip_forward";
-                skipButton.prepend(icon); // Place icon before text
-
-                skipButton.addEventListener('click', () => {
-                    skippedQuestions.push(index);
-                    localStorage.setItem('overgeslagenVragen', JSON.stringify(skippedQuestions));
-                    questionItem.classList.add('skipped'); // Changed from overgeslagen
-                    questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p><span class="text-yellow-800 font-medium">Skipped</span>`; // Changed from vraag-tekst, Overgeslagen
-                     // Refresh the current page.
-                    window.location.reload();
-
-                });
-                questionItem.appendChild(skipButton);
-            }
-            questionsList.appendChild(questionItem); // Changed from vragenLijst
-        });
-
-        document.getElementById('reset-button').addEventListener('click', () => { // Changed from reset-knop
+        document.getElementById('reset-button').addEventListener('click', async () => {
+            // Reset local storage
             localStorage.removeItem('beantwoordeVragen');
-            localStorage.removeItem('overgeslagenVragen');
             localStorage.removeItem('vraagAntwoordTimestamps');
-            answeredQuestions = [];
-            skippedQuestions = [];
-            questionAnswerTimestamps = {};
-            window.location.reload();
+            answeredQuestionsLocal = [];
+            questionAnswerTimestampsLocal = {};
+
+            // Reset shared state in Firestore
+            await updateSkippedQuestionsInFirestore([]);
+
+            window.location.reload(); // Reload the page to fully refresh state
         });
+
+        // Initialize Firebase and setup listeners on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', initFirebase);
     </script>
 </body>
 </html>
