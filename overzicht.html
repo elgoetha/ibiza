@@ -1,4 +1,4 @@
-<!-- overzicht.html -->
+!-- overzicht.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -97,13 +97,25 @@
         }
 
     </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-10">
+    <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
+        <h1 class="text-2xl font-semibold text-blue-600 mb-6 text-center">Questions Overview</h1>
+        <div id="questions-list">
+            </div>
+        <button id="reset-button" class="reset-button">Reset All Questions</button>
+        <a href="index.html" class="mt-6 inline-block text-blue-500 hover:text-blue-700 transition-colors duration-200 font-medium text-center block">
+            Back to Question
+        </a>
+    </div>
+
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Tailwind CSS configuration
+        // Tailwind CSS configuration (moved to global scope if needed, or define in DOMContentLoaded)
         tailwind.config = {
             theme: {
                 extend: {
@@ -114,7 +126,7 @@
             },
         }
 
-        // Firebase Initialization
+        // Firebase Initialization (direct initialization)
         const appId = "ibiza-cfb1f"; // Your Firebase Project ID
         const firebaseConfig = {
             apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
@@ -158,28 +170,54 @@
         // Shared state for skipped questions (from Firestore)
         let skippedQuestionsShared = [];
 
-        // Set up Firebase Auth listener
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log("Firebase Auth State Changed: Logged in as", user.uid);
-                authReady = true;
-                setupFirestoreListener(); // Setup listener after auth is ready
+        // Set up Firebase Auth listener inside DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const resetButton = document.getElementById('reset-button');
+            if (resetButton) {
+                resetButton.addEventListener('click', async () => {
+                    // Reset local storage
+                    localStorage.removeItem('beantwoordeVragen');
+                    localStorage.removeItem('vraagAntwoordTimestamps');
+                    answeredQuestionsLocal = [];
+                    questionAnswerTimestampsLocal = {};
+
+                    // Reset shared state in Firestore
+                    await updateSkippedQuestionsInFirestore([]);
+
+                    window.location.reload(); // Reload the page to fully refresh state
+                });
             } else {
-                console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
-                try {
-                    // Only attempt anonymous sign-in if not currently authenticated
-                    if (!auth.currentUser) {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error during anonymous sign-in:", error);
-                    authReady = false; // Ensure authReady is false if sign-in fails
-                }
+                console.error("Error: 'reset-button' not found in DOM when attaching listener.");
             }
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    console.log("Firebase Auth State Changed: Logged in as", user.uid);
+                    authReady = true;
+                    setupFirestoreListener(); // Setup listener after auth is ready
+                } else {
+                    console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
+                    try {
+                        // Only attempt anonymous sign-in if not currently authenticated
+                        if (!auth.currentUser) {
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error during anonymous sign-in:", error);
+                        // Display error to the user if needed
+                        const errorContainer = document.querySelector('.feedback-message.incorrect'); // Assuming you have an error message div somewhere
+                        if (errorContainer) {
+                             errorContainer.textContent = `Authentication failed: ${error.message}. Please check your Firebase project setup and security rules.`;
+                             errorContainer.style.display = 'block';
+                        }
+                        authReady = false; // Ensure authReady is false if sign-in fails
+                    }
+                }
+            });
         });
 
 
@@ -197,11 +235,20 @@
                 } else {
                     skippedQuestionsShared = [];
                     console.log("No skipped questions document found in Firestore.");
+                    // Optionally create the document if it doesn't exist on initial load to prevent "not found" messages.
+                    setDoc(doc(db, `artifacts/${appId}/public/data/skipped_questions/status`), { skippedIndices: [] }, { merge: true })
+                        .then(() => console.log("Skipped questions document initialized in Firestore."))
+                        .catch(e => console.error("Error initializing skipped questions document:", e));
                 }
                 renderQuestionsList(); // Re-render the list whenever shared state changes
             }, (error) => {
                 console.error("Error fetching skipped questions from Firestore:", error);
                 // Display error to the user if needed
+                const errorContainer = document.querySelector('.feedback-message.incorrect');
+                if (errorContainer) {
+                    errorContainer.textContent = `Error fetching skipped questions: ${error.message}`;
+                    errorContainer.style.display = 'block';
+                }
             });
         }
 
@@ -218,12 +265,17 @@
             } catch (error) {
                 console.error("Error updating skipped questions in Firestore:", error);
                 // Display error to the user if needed
+                const errorContainer = document.querySelector('.feedback-message.incorrect');
+                if (errorContainer) {
+                    errorContainer.textContent = `Error updating skipped questions: ${error.message}`;
+                    errorContainer.style.display = 'block';
+                }
             }
         }
 
         function renderQuestionsList() {
             const questionsList = document.getElementById('questions-list');
-            if (!questionsList) { // Added null check
+            if (!questionsList) {
                 console.error("Error: 'questions-list' not found in DOM for rendering.");
                 return;
             }
@@ -287,9 +339,7 @@
 
             window.location.reload(); // Reload the page to fully refresh state
         });
-
-        // Initialize Firebase and setup listeners on DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', initFirebase);
+        // Initial Firebase setup and listeners are now primarily within DOMContentLoaded
     </script>
 </body>
 </html>
