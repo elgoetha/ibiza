@@ -115,8 +115,28 @@
         }
 
         // Firebase Initialization
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // VERVANG DEZE LIJNEN MET JE WERKELIJKE FIREBASE CONFIGURATIE EN PROJECT ID
+        // Voorbeeld:
+        // const appId = "jouw-firebase-project-id"; // Bijv. "ibiza-bachelor-party-12345"
+        // const firebaseConfig = {
+        //   apiKey: "AIzaSy...",
+        //   authDomain: "jouw-project-id.firebaseapp.com",
+        //   projectId: "jouw-project-id",
+        //   storageBucket: "jouw-project-id.appspot.com",
+        //   messagingSenderId: "...",
+        //   appId: "1:...",
+        //   measurementId: "G-..."
+        // };
+        const appId = "ibiza-cfb1f";
+        const firebaseConfig = {
+          apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
+          authDomain: "ibiza-cfb1f.firebaseapp.com",
+          projectId: "ibiza-cfb1f",
+          storageBucket: "ibiza-cfb1f.firebasestorage.app",
+          messagingSenderId: "432344257805",
+          appId: "1:432344257805:web:05260234475d049a644c44"
+        };
+        // EINDE VAN FIREBASE CONFIGURATIE PLAATSHOUDERS
 
         let app;
         let db;
@@ -152,14 +172,20 @@
 
         async function initFirebase() {
             try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+                // Initialize Firebase app only once
+                if (!app) {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                }
 
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                // Sign in if not already signed in
+                if (!auth.currentUser) {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
                 }
 
                 onAuthStateChanged(auth, (user) => {
