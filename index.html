@@ -97,7 +97,6 @@
         }
 
         // Firebase Initialization
-        // VERVANG DEZE LIJNEN MET JE WERKELIJKE FIREBASE CONFIGURATIE EN PROJECT ID
         const appId = "ibiza-cfb1f"; // Jouw Firebase Project ID
         const firebaseConfig = {
             apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
@@ -107,15 +106,14 @@
             messagingSenderId: "432344257805",
             appId: "1:432344257805:web:05260234475d049a644c44"
         };
-        // EINDE VAN FIREBASE CONFIGURATIE
 
-        const app = initializeApp(firebaseConfig); // Initialize Firebase app
-        const db = getFirestore(app); // Get Firestore instance
-        const auth = getAuth(app); // Get Auth instance
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        let authReady = false; // Flag to ensure Firestore operations happen after auth
-        let unsubscribeFirestore = null; // To store the unsubscribe function for Firestore listener
-        let initialQuestionLoaded = false; // Flag to ensure the question is loaded only once on initial auth
+        let authReady = false;
+        let unsubscribeFirestore = null;
+        let initialQuestionLoaded = false;
 
         const questions = [
             "Who will have the biggest hangover after our wedding?", // 1
@@ -187,32 +185,34 @@
                 console.log("Firebase Auth State Changed: Logged in as", user.uid);
                 authReady = true;
                 setupFirestoreListener();
-                // Load the question if it hasn't been loaded yet for this session
                 if (!initialQuestionLoaded) {
                     loadQuestion();
                     initialQuestionLoaded = true;
                 }
+                // Attach send button listener only after auth is ready and page is loaded
+                const sendButton = document.getElementById('send-button');
+                if (sendButton && !sendButton.hasClickListener) { // Check if listener already added
+                    sendButton.addEventListener('click', checkAnswer);
+                    sendButton.hasClickListener = true; // Mark that listener is added
+                }
+
             } else {
                 console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
                 try {
-                    // Attempt anonymous sign-in if not authenticated
-                    // In GitHub Pages, __initial_auth_token is undefined, so it will fall back to signInAnonymously
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    // Only attempt anonymous sign-in if not currently authenticated
+                    if (!auth.currentUser) {
+                         // __initial_auth_token is undefined when self-hosting, so it will fall back to signInAnonymously
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                             await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
                     }
                 } catch (error) {
                     console.error("Error during anonymous sign-in:", error);
                     document.getElementById('error-container').style.display = 'block';
-                    document.getElementById('error-container').textContent = `Authentication failed: ${error.message}. Please check your Firebase project setup and security rules.`;
-                    authReady = false; // Ensure authReady is false if sign-in fails
-                }
-                if (!auth.currentUser) { // If still no user after attempt
+                    document.getElementById('error-container').textContent = `Authentication failed: ${error.message}. Please ensure Anonymous Authentication is enabled in your Firebase project and API Key is correct.`;
                     authReady = false;
-                    if (unsubscribeFirestore) {
-                        unsubscribeFirestore(); // Clean up listener if sign-in fails
-                    }
                 }
             }
         });
@@ -325,7 +325,6 @@
         }
 
         document.getElementById('send-button').addEventListener('click', checkAnswer);
-
         // No need for DOMContentLoaded listener here, as Firebase initialization happens immediately
         // and onAuthStateChanged will handle subsequent logic.
         // The first load of question will be triggered by onAuthStateChanged when auth is ready.
