@@ -78,6 +78,25 @@
             color: #78350f;
             border: 1px solid #fcd34d;
         }
+        /* Style for the play audio button */
+        .play-audio-button {
+            background-color: #10b981; /* Green color */
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition-duration: 300ms;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            width: 100%; /* Make it full width */
+        }
+        .play-audio-button:hover {
+            background-color: #059669; /* Darker green on hover */
+        }
     </style>
 </head>
 <body class="bg-gradient-to-r from-purple-400 to-pink-500 min-h-screen flex justify-center items-center py-10">
@@ -97,6 +116,9 @@
         <div id="error-container" class="feedback-message incorrect" style="display: none;">
             <p class="text-red-600 font-medium"></p>
         </div>
+        <button id="play-audio-button" class="play-audio-button" style="display: none;">
+            <span class="material-symbols-outlined">play_arrow</span> Play Answer
+        </button>
     </div>
 
     <script type="module">
@@ -153,23 +175,23 @@
             "What is Aline's cup size?", // 15
         ];
 
-        // IMPORTANT: Update these with the actual paths to your audio files!
+        // IMPORTANT: Update these with the actual paths to your audio files! Use .opus extension
         const audioPaths = [
-            "audio/0.mp3", // For question 1 (index 0)
-            "audio/1.mp3", // For question 2 (index 1)
-            "audio/2.mp3",
-            "audio/3.mp3",
-            "audio/4.mp3",
-            "audio/5.mp3",
-            "audio/6.mp3",
-            "audio/7.mp3",
-            "audio/8.mp3",
-            "audio/9.mp3",
-            "audio/10.mp3",
-            "audio/11.mp3",
-            "audio/12.mp3",
-            "audio/13.mp3",
-            "audio/14.mp3", // For question 15 (index 14)
+            "audio/0.opus", // For question 1 (index 0)
+            "audio/1.opus", // For question 2 (index 1)
+            "audio/2.opus",
+            "audio/3.opus",
+            "audio/4.opus",
+            "audio/5.opus",
+            "audio/6.opus",
+            "audio/7.opus",
+            "audio/8.opus",
+            "audio/9.opus",
+            "audio/10.opus",
+            "audio/11.opus",
+            "audio/12.opus",
+            "audio/13.opus",
+            "audio/14.opus", // For question 15 (index 14)
         ];
 
         const correctAnswers = [
@@ -208,6 +230,19 @@
             } else {
                 console.error("Error: 'send-button' not found in DOM when attaching listener.");
             }
+
+            const playAudioButton = document.getElementById('play-audio-button');
+            if (playAudioButton) {
+                playAudioButton.addEventListener('click', () => {
+                    if (audioPaths[currentQuestionIndex]) {
+                        const audio = new Audio(audioPaths[currentQuestionIndex]);
+                        audio.play().catch(e => console.error("Audio playback failed:", e));
+                    }
+                });
+            } else {
+                console.error("Error: 'play-audio-button' not found in DOM when attaching listener.");
+            }
+
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
@@ -301,6 +336,7 @@
             const answerInputContainer = document.getElementById('answer-input-container');
             const feedbackContainer = document.getElementById('feedback-container');
             const errorContainer = document.getElementById('error-container');
+            const playAudioButton = document.getElementById('play-audio-button');
 
 
             if (lowestNonSkippedIndex !== -1) {
@@ -312,6 +348,7 @@
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
                 if (answerInputContainer) answerInputContainer.style.display = 'flex';
                 if (errorContainer) errorContainer.style.display = 'none'; // Hide error if a question is successfully loaded
+                if (playAudioButton) playAudioButton.style.display = 'none'; // Hide play button for new question
             } else {
                 // This case means all questions are either answered or skipped globally.
                 if (questionTextElement) questionTextElement.textContent = "All questions have been skipped or answered! Please reset from the overview page if you wish to answer them.";
@@ -319,12 +356,14 @@
                 if (answerInputContainer) answerInputContainer.style.display = 'none';
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
                 if (errorContainer) errorContainer.style.display = 'none'; // Hide error if all questions are done
+                if (playAudioButton) playAudioButton.style.display = 'none'; // Hide play button
             }
         }
 
         function checkAnswer() {
             const answerInput = document.getElementById('answer-input');
             const feedbackContainer = document.getElementById('feedback-container');
+            const playAudioButton = document.getElementById('play-audio-button');
             const answer = answerInput.value.trim();
 
             if (answer.toLowerCase() === correctAnswers[currentQuestionIndex].toLowerCase()) {
@@ -354,7 +393,17 @@
             // Play audio if available
             if (audioPaths[currentQuestionIndex]) {
                 const audio = new Audio(audioPaths[currentQuestionIndex]);
-                audio.play().catch(e => console.error("Audio playback failed:", e));
+                audio.play().then(() => {
+                    if (playAudioButton) playAudioButton.style.display = 'block'; // Show play button after initial play
+                }).catch(e => {
+                    console.error("Audio playback failed:", e);
+                    // Optionally show an error to the user if audio fails
+                    const errorContainer = document.getElementById('error-container');
+                    if (errorContainer && errorContainer.querySelector('p')) {
+                        errorContainer.querySelector('p').textContent = `Audio playback failed: ${e.message}. .opus files might not be supported on your browser.`;
+                        errorContainer.style.display = 'block';
+                    }
+                });
             }
 
             // IMPORTANT: No call to loadQuestion() here! The question stays until manual refresh or skip on overview page.
