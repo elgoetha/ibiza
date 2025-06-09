@@ -1,9 +1,10 @@
+<!-- overzicht.html -->
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vrijgezellenfeest Ibiza - Vragenoverzicht</title>
+    <title>Bachelor Party Ibiza - Questions Overview</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +14,7 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .vraag-item {
+        .question-item { /* Changed from .vraag-item */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -23,16 +24,16 @@
             background-color: #f7fafc;  /* bg-gray-100 */
             border: 1px solid #e2e8f0;  /* border-gray-200 */
         }
-        .vraag-item:nth-child(odd) {
+        .question-item:nth-child(odd) {
              background-color: #edf2f7; /* bg-gray-200 for odd items */
         }
 
-        .vraag-tekst {
+        .question-text { /* Changed from .vraag-tekst */
             margin-right: 1rem;       /* mr-4 */
             font-size: 1rem;         /* text-base */
             color: #4a5568;          /* text-gray-700 */
         }
-        .sla-over-knop {
+        .skip-button { /* Changed from .sla-over-knop */
             background-color: #f59e0b;  /* bg-yellow-500 */
             color: #fff;
             padding: 0.5rem 1rem;      /* py-2 px-4 */
@@ -44,21 +45,21 @@
             align-items: center; /* Vertically center icon and text */
             gap: 0.5rem; /* Space between icon and text */
         }
-        .sla-over-knop:hover {
+        .skip-button:hover {
             background-color: #d97706;  /* bg-yellow-700 on hover */
         }
-        .overgeslagen {
+        .skipped { /* Changed from .overgeslagen */
             background-color: #fef08a; /* bg-yellow-100 */
             color: #78350f;          /* text-yellow-800 */
             border: 1px solid #fcd34d;  /* border-yellow-300 */
         }
-         .beantwoord {
+         .answered { /* Changed from .beantwoord */
             background-color: #f0fdf4; /* bg-green-100 */
             color: #15803d;          /* text-green-600 */
             border: 1px solid #16a34a;  /* border-green-500 */
         }
 
-        .reset-knop {
+        .reset-button { /* Changed from .reset-knop */
             background-color: #dc2626; /* bg-red-500 */
             color: #fff;
             padding: 0.75rem 1.5rem;
@@ -73,11 +74,11 @@
             text-align: center;
         }
 
-        .reset-knop:hover {
+        .reset-button:hover {
             background-color: #b91c1c; /* bg-red-700 */
         }
 
-        .niet-overslaan-knop {
+        .unskip-button { /* Changed from .niet-overslaan-knop */
             background-color: #10b981; /* bg-emerald-500 */
             color: #fff;
             padding: 0.5rem 1rem;
@@ -91,7 +92,7 @@
             margin-left: 0.5rem;
         }
 
-        .niet-overslaan-knop:hover {
+        .unskip-button:hover {
             background-color: #059669; /* bg-emerald-700 */
         }
 
@@ -110,120 +111,120 @@
 </head>
 <body class="bg-gray-100 min-h-screen py-10">
     <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
-        <h1 class="text-2xl font-semibold text-blue-600 mb-6 text-center">Vragenoverzicht</h1>
-        <div id="vragen-lijst">
+        <h1 class="text-2xl font-semibold text-blue-600 mb-6 text-center">Questions Overview</h1>
+        <div id="questions-list"> <!-- Changed from #vragen-lijst -->
             </div>
-        <button id="reset-knop" class="reset-knop">Reset alle vragen</button>
+        <button id="reset-button" class="reset-button">Reset All Questions</button> <!-- Changed from #reset-knop -->
         <a href="index.html" class="mt-6 inline-block text-blue-500 hover:text-blue-700 transition-colors duration-200 font-medium text-center block">
-            Terug naar de vraag
+            Back to Question
         </a>
     </div>
 
     <script>
-        const vragen = [
-            "Wie zal de grootste kater hebben na onze trouw?", // 1
-            "⁠Na hoeveel dates hebben we met elkaar geslapen?", // 2
-            "⁠Wat is Aline haar lievelingsdessert op restaurant?", // 3
-            "⁠Wat wilde Aline later worden als kind?", // 4
-            "⁠Wat is de ultieme droomvakantiebestemming van Aline?", // 5
-            "Hoeveel exen heeft Aline?", // 6
-            "⁠Wat is Aline haar favoriete lingeriesetje uit haar kleerkast?", // 7
-            "⁠Wie zei als eerste: ik hou van jou?", // 8
-            "⁠Waar ging jullie eerste ruzie over?", // 9
-            "Als Aline één maaltijd de rest van haar leven zou moeten eten, welke zou het dan zijn?", // 10
-            "⁠Wat is Aline haar guilty pleasure in haar leven?", // 11
-            "⁠Wat zegt Aline meestal als ze afscheid neemt aan de telefoon?", // 12
-            "⁠Met welke snack mag je Aline s nachts wakker maken?", // 13
-            "⁠Wat is een gek of grappig ritueeltje dat jullie samen hebben?", // 14
-            "Wat is de cupmaat van Aline?", // 15
+        const questions = [ // Changed from vragen
+            "Who will have the biggest hangover after our wedding?", // 1
+            "After how many dates did we sleep together?", // 2
+            "What is Aline's favorite restaurant dessert?", // 3
+            "What did Aline want to be when she grew up?", // 4
+            "What is Aline's ultimate dream vacation destination?", // 5
+            "How many exes does Aline have?", // 6
+            "What is Aline's favorite lingerie set from her closet?", // 7
+            "Who said 'I love you' first?", // 8
+            "What was your first argument about?", // 9
+            "If Aline had to eat one meal for the rest of her life, what would it be?", // 10
+            "What is Aline's guilty pleasure?", // 11
+            "What does Aline usually say when she says goodbye on the phone?", // 12
+            "What snack can wake Aline up at night?", // 13
+            "What is a crazy or funny ritual you have together?", // 14
+            "What is Aline's cup size?", // 15
         ];
 
-        let beantwoordeVragen = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
-        let overgeslagenVragen = JSON.parse(localStorage.getItem('overgeslagenVragen')) || [];
-        let laatsteBeantwoordeVraag = parseInt(localStorage.getItem('laatstBeantwoordeVraag'), 10);
-        let vraagAntwoordTimestamps = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {};
+        let answeredQuestions = JSON.parse(localStorage.getItem('beantwoordeVragen')) || []; // Using old key for compatibility
+        let skippedQuestions = JSON.parse(localStorage.getItem('overgeslagenVragen')) || []; // Using old key for compatibility
+        // removed laatsteBeantwoordeVraag as it's not strictly used for logic
+        let questionAnswerTimestamps = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {}; // Using old key for compatibility
 
 
-        const vragenLijst = document.getElementById('vragen-lijst');
-        vragenLijst.innerHTML = ''; // Maak de lijst leeg
+        const questionsList = document.getElementById('questions-list'); // Changed from vragenLijst
+        questionsList.innerHTML = ''; // Clear the list
 
-        vragen.forEach((vraag, index) => {
-            const vraagItem = document.createElement('div');
-            vraagItem.className = 'vraag-item';
-            vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p>`;
+        questions.forEach((question, index) => { // Changed from vraag
+            const questionItem = document.createElement('div'); // Changed from vraagItem
+            questionItem.className = 'question-item';
+            questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p>`; // Changed from vraag-tekst
 
-            if (beantwoordeVragen.includes(index)) {
-                vraagItem.classList.add('beantwoord');
-                const timestamp = vraagAntwoordTimestamps[index] ? new Date(vraagAntwoordTimestamps[index]).toLocaleString() : 'Onbekend';
-                vraagItem.innerHTML += `<span class="text-green-600 font-medium">Beantwoord op: ${timestamp}</span>`;
-            } else if (overgeslagenVragen.includes(index)) {
-                vraagItem.classList.add('overgeslagen');
-                vraagItem.innerHTML += `<span class="text-yellow-800 font-medium">Overgeslagen</span>`;
-                const nietOverslaanKnop = document.createElement('button');
-                nietOverslaanKnop.className = 'niet-overslaan-knop';
-                nietOverslaanKnop.textContent = 'Neem terug';
+            if (answeredQuestions.includes(index)) {
+                questionItem.classList.add('answered'); // Changed from beantwoord
+                const timestamp = questionAnswerTimestamps[index] ? new Date(questionAnswerTimestamps[index]).toLocaleString() : 'Unknown'; // Changed from Onbekend
+                questionItem.innerHTML += `<span class="text-green-600 font-medium">Answered on: ${timestamp}</span>`; // Changed from Beantwoord op
+            } else if (skippedQuestions.includes(index)) {
+                questionItem.classList.add('skipped'); // Changed from overgeslagen
+                questionItem.innerHTML += `<span class="text-yellow-800 font-medium">Skipped</span>`; // Changed from Overgeslagen
+                const unskipButton = document.createElement('button'); // Changed from nietOverslaanKnop
+                unskipButton.className = 'unskip-button';
+                unskipButton.textContent = 'Unskip'; // Changed from Neem terug
                 const icon = document.createElement('span');
                 icon.className = "material-symbols-outlined";
                 icon.textContent = "undo";
-                nietOverslaanKnop.prepend(icon);
+                unskipButton.prepend(icon);
 
-                nietOverslaanKnop.addEventListener('click', () => {
-                    overgeslagenVragen = overgeslagenVragen.filter(qIndex => qIndex !== index);
-                    localStorage.setItem('overgeslagenVragen', JSON.stringify(overgeslagenVragen));
-                    vraagItem.classList.remove('overgeslagen');
-                    vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p>`;
-                    const slaOverKnop = document.createElement('button');
-                    slaOverKnop.className = 'sla-over-knop';
-                    slaOverKnop.textContent = 'Sla over';
+                unskipButton.addEventListener('click', () => {
+                    skippedQuestions = skippedQuestions.filter(qIndex => qIndex !== index);
+                    localStorage.setItem('overgeslagenVragen', JSON.stringify(skippedQuestions));
+                    questionItem.classList.remove('skipped'); // Changed from overgeslagen
+                    questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p>`; // Changed from vraag-tekst
+                    const skipButton = document.createElement('button'); // Changed from slaOverKnop
+                    skipButton.className = 'skip-button';
+                    skipButton.textContent = 'Skip'; // Changed from Sla over
                     const icon = document.createElement('span');
                     icon.className = "material-symbols-outlined";
                     icon.textContent = "skip_forward";
-                    slaOverKnop.prepend(icon);
+                    skipButton.prepend(icon);
 
-                    slaOverKnop.addEventListener('click', () => {
-                        overgeslagenVragen.push(index);
-                        localStorage.setItem('overgeslagenVragen', JSON.stringify(overgeslagenVragen));
-                        vraagItem.classList.add('overgeslagen');
-                        vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p><span class="text-yellow-800 font-medium">Overgeslagen</span>`;
+                    skipButton.addEventListener('click', () => {
+                        skippedQuestions.push(index);
+                        localStorage.setItem('overgeslagenVragen', JSON.stringify(skippedQuestions));
+                        questionItem.classList.add('skipped'); // Changed from overgeslagen
+                        questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p><span class="text-yellow-800 font-medium">Skipped</span>`; // Changed from vraag-tekst, Overgeslagen
                         window.location.reload();
                     });
-                    vraagItem.appendChild(slaOverKnop);
+                    questionItem.appendChild(skipButton);
 
-                    window.location.reload();
+                    window.location.reload(); // Reload to refresh the list and potentially index.html if active on another tab
 
                 });
-                vraagItem.appendChild(nietOverslaanKnop);
+                questionItem.appendChild(unskipButton);
             }
              else {
-                const slaOverKnop = document.createElement('button');
-                slaOverKnop.className = 'sla-over-knop';
-                slaOverKnop.textContent = 'Sla over';
+                const skipButton = document.createElement('button'); // Changed from slaOverKnop
+                skipButton.className = 'skip-button';
+                skipButton.textContent = 'Skip'; // Changed from Sla over
                 const icon = document.createElement('span');
                 icon.className = "material-symbols-outlined";
                 icon.textContent = "skip_forward";
-                slaOverKnop.prepend(icon); // Place icon before text
+                skipButton.prepend(icon); // Place icon before text
 
-                slaOverKnop.addEventListener('click', () => {
-                    overgeslagenVragen.push(index);
-                    localStorage.setItem('overgeslagenVragen', JSON.stringify(overgeslagenVragen));
-                    vraagItem.classList.add('overgeslagen');
-                    vraagItem.innerHTML = `<p class="vraag-tekst">${index + 1}. ${vraag}</p><span class="text-yellow-800 font-medium">Overgeslagen</span>`;
+                skipButton.addEventListener('click', () => {
+                    skippedQuestions.push(index);
+                    localStorage.setItem('overgeslagenVragen', JSON.stringify(skippedQuestions));
+                    questionItem.classList.add('skipped'); // Changed from overgeslagen
+                    questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p><span class="text-yellow-800 font-medium">Skipped</span>`; // Changed from vraag-tekst, Overgeslagen
                      // Refresh the current page.
                     window.location.reload();
 
                 });
-                vraagItem.appendChild(slaOverKnop);
+                questionItem.appendChild(skipButton);
             }
-            vragenLijst.appendChild(vraagItem);
+            questionsList.appendChild(questionItem); // Changed from vragenLijst
         });
 
-        document.getElementById('reset-knop').addEventListener('click', () => {
+        document.getElementById('reset-button').addEventListener('click', () => { // Changed from reset-knop
             localStorage.removeItem('beantwoordeVragen');
             localStorage.removeItem('overgeslagenVragen');
             localStorage.removeItem('vraagAntwoordTimestamps');
-            beantwoordeVragen = [];
-            overgeslagenVragen = [];
-            vraagAntwoordTimestamps = {};
+            answeredQuestions = [];
+            skippedQuestions = [];
+            questionAnswerTimestamps = {};
             window.location.reload();
         });
     </script>
