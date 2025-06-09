@@ -109,11 +109,13 @@
         };
         // EINDE VAN FIREBASE CONFIGURATIE
 
-        let app;
-        let db;
-        let auth;
+        const app = initializeApp(firebaseConfig); // Initialize Firebase app
+        const db = getFirestore(app); // Get Firestore instance
+        const auth = getAuth(app); // Get Auth instance
+
         let authReady = false; // Flag to ensure Firestore operations happen after auth
         let unsubscribeFirestore = null; // To store the unsubscribe function for Firestore listener
+        let initialQuestionLoaded = false; // Flag to ensure the question is loaded only once on initial auth
 
         const questions = [
             "Who will have the biggest hangover after our wedding?", // 1
@@ -178,50 +180,43 @@
         let skippedQuestionsShared = [];
 
         let currentQuestionIndex;
-        let isFirstLoad = true;
 
-        async function initFirebase() {
-            try {
-                // Initialize Firebase app only once
-                if (!app) {
-                    app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
+        // Set up Firebase Auth listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("Firebase Auth State Changed: Logged in as", user.uid);
+                authReady = true;
+                setupFirestoreListener();
+                // Load the question if it hasn't been loaded yet for this session
+                if (!initialQuestionLoaded) {
+                    loadQuestion();
+                    initialQuestionLoaded = true;
                 }
-
-
-                // Sign in if not already signed in
-                if (!auth.currentUser) {
+            } else {
+                console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
+                try {
+                    // Attempt anonymous sign-in if not authenticated
+                    // In GitHub Pages, __initial_auth_token is undefined, so it will fall back to signInAnonymously
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
                         await signInAnonymously(auth);
                     }
+                } catch (error) {
+                    console.error("Error during anonymous sign-in:", error);
+                    document.getElementById('error-container').style.display = 'block';
+                    document.getElementById('error-container').textContent = `Authentication failed: ${error.message}. Please check your Firebase project setup and security rules.`;
+                    authReady = false; // Ensure authReady is false if sign-in fails
                 }
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        console.log("Firebase Auth State Changed: Logged in as", user.uid);
-                        authReady = true;
-                        // Setup Firestore listener only after authentication
-                        setupFirestoreListener();
-                        // Load the question once Firebase is ready
-                        loadQuestion();
-                    } else {
-                        console.log("Firebase Auth State Changed: Logged out or no user");
-                        authReady = false;
-                        if (unsubscribeFirestore) {
-                            unsubscribeFirestore(); // Clean up listener on logout
-                        }
+                if (!auth.currentUser) { // If still no user after attempt
+                    authReady = false;
+                    if (unsubscribeFirestore) {
+                        unsubscribeFirestore(); // Clean up listener if sign-in fails
                     }
-                });
-
-            } catch (error) {
-                console.error("Error initializing Firebase or signing in:", error);
-                document.getElementById('error-container').style.display = 'block';
-                document.getElementById('error-container').textContent = `Error: ${error.message}`;
+                }
             }
-        }
+        });
+
 
         function setupFirestoreListener() {
             if (unsubscribeFirestore) {
@@ -238,9 +233,9 @@
                     skippedQuestionsShared = [];
                     console.log("No skipped questions document found in Firestore.");
                 }
-                // Reload the question immediately if this is not the first load
-                // (to react to changes from other devices)
-                if (!isFirstLoad) { // This ensures the question is re-evaluated based on new skipped state
+                // Reload the question only if it's not the very first load
+                // This ensures the question is re-evaluated based on new skipped state from other devices
+                if (initialQuestionLoaded) { // Only re-evaluate if a question was already loaded
                     loadQuestion();
                 }
             }, (error) => {
@@ -257,7 +252,7 @@
                 return;
             }
 
-            // Check if all questions are answered or globally skipped
+            // Check if all questions are answered locally or globally skipped
             const remainingQuestions = questions.filter((_, i) =>
                 !answeredQuestionsLocal.includes(i) && !skippedQuestionsShared.includes(i)
             );
@@ -283,8 +278,7 @@
             if (lowestNonSkippedIndex !== -1) {
                 currentQuestionIndex = lowestNonSkippedIndex;
             } else {
-                // This case should ideally be caught by the remainingQuestions.length check,
-                // but as a fallback if all are skipped globally.
+                // This case means all questions are either answered or skipped globally.
                 document.getElementById('question-text').textContent = "All questions have been skipped! Please reset from the overview page if you wish to answer them.";
                 document.getElementById('question-number').textContent = "";
                 document.getElementById('answer-input-container').style.display = 'none';
@@ -332,8 +326,9 @@
 
         document.getElementById('send-button').addEventListener('click', checkAnswer);
 
-        // Initialize Firebase and load question on DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', initFirebase);
+        // No need for DOMContentLoaded listener here, as Firebase initialization happens immediately
+        // and onAuthStateChanged will handle subsequent logic.
+        // The first load of question will be triggered by onAuthStateChanged when auth is ready.
     </script>
 </body>
 </html>
