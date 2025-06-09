@@ -97,7 +97,7 @@
         }
 
         // Firebase Initialization
-        const appId = "ibiza-cfb1f"; // Jouw Firebase Project ID
+        const appId = "ibiza-cfb1f"; // Your Firebase Project ID
         const firebaseConfig = {
             apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
             authDomain: "ibiza-cfb1f.firebaseapp.com",
@@ -113,7 +113,7 @@
 
         let authReady = false;
         let unsubscribeFirestore = null;
-        let initialQuestionLoaded = false;
+        let initialQuestionLoaded = false; // Flag to ensure the question is loaded only once on initial auth
 
         const questions = [
             "Who will have the biggest hangover after our wedding?", // 1
@@ -189,19 +189,13 @@
                     loadQuestion();
                     initialQuestionLoaded = true;
                 }
-                // Attach send button listener only after auth is ready and page is loaded
-                const sendButton = document.getElementById('send-button');
-                if (sendButton && !sendButton.hasClickListener) { // Check if listener already added
-                    sendButton.addEventListener('click', checkAnswer);
-                    sendButton.hasClickListener = true; // Mark that listener is added
-                }
-
             } else {
                 console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
                 try {
                     // Only attempt anonymous sign-in if not currently authenticated
                     if (!auth.currentUser) {
                          // __initial_auth_token is undefined when self-hosting, so it will fall back to signInAnonymously
+                        // Note: If you face issues with signInAnonymously, ensure it's enabled in Firebase Auth settings.
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                              await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
@@ -210,8 +204,11 @@
                     }
                 } catch (error) {
                     console.error("Error during anonymous sign-in:", error);
-                    document.getElementById('error-container').style.display = 'block';
-                    document.getElementById('error-container').textContent = `Authentication failed: ${error.message}. Please ensure Anonymous Authentication is enabled in your Firebase project and API Key is correct.`;
+                    const errorContainer = document.getElementById('error-container');
+                    if (errorContainer) {
+                        errorContainer.style.display = 'block';
+                        errorContainer.textContent = `Authentication failed: ${error.message}. Please ensure Anonymous Authentication is enabled in your Firebase project and API Key is correct.`;
+                    }
                     authReady = false;
                 }
             }
@@ -240,8 +237,11 @@
                 }
             }, (error) => {
                 console.error("Error fetching skipped questions from Firestore:", error);
-                document.getElementById('error-container').style.display = 'block';
-                document.getElementById('error-container').textContent = `Error loading skipped questions: ${error.message}`;
+                const errorContainer = document.getElementById('error-container');
+                if (errorContainer) {
+                    errorContainer.style.display = 'block';
+                    errorContainer.textContent = `Error loading skipped questions: ${error.message}`;
+                }
             });
         }
 
@@ -257,11 +257,16 @@
                 !answeredQuestionsLocal.includes(i) && !skippedQuestionsShared.includes(i)
             );
 
+            const questionTextElement = document.getElementById('question-text');
+            const questionNumberElement = document.getElementById('question-number');
+            const answerInputContainer = document.getElementById('answer-input-container');
+            const feedbackContainer = document.getElementById('feedback-container');
+
             if (remainingQuestions.length === 0) {
-                document.getElementById('question-text').textContent = "All questions have been answered or skipped! Thanks for participating!";
-                document.getElementById('question-number').textContent = "";
-                document.getElementById('answer-input-container').style.display = 'none';
-                document.getElementById('feedback-container').style.display = 'none';
+                if (questionTextElement) questionTextElement.textContent = "All questions have been answered or skipped! Thanks for participating!";
+                if (questionNumberElement) questionNumberElement.textContent = "";
+                if (answerInputContainer) answerInputContainer.style.display = 'none';
+                if (feedbackContainer) feedbackContainer.style.display = 'none';
                 return;
             }
 
@@ -279,18 +284,19 @@
                 currentQuestionIndex = lowestNonSkippedIndex;
             } else {
                 // This case means all questions are either answered or skipped globally.
-                document.getElementById('question-text').textContent = "All questions have been skipped! Please reset from the overview page if you wish to answer them.";
-                document.getElementById('question-number').textContent = "";
-                document.getElementById('answer-input-container').style.display = 'none';
-                document.getElementById('feedback-container').style.display = 'none';
+                if (questionTextElement) questionTextElement.textContent = "All questions have been skipped! Please reset from the overview page if you wish to answer them.";
+                if (questionNumberElement) questionNumberElement.textContent = "";
+                if (answerInputContainer) answerInputContainer.style.display = 'none';
+                if (feedbackContainer) feedbackContainer.style.display = 'none';
                 return;
             }
 
-            document.getElementById('question-number').textContent = `Question ${currentQuestionIndex + 1}`;
-            document.getElementById('question-text').textContent = questions[currentQuestionIndex];
-            document.getElementById('answer-input').value = '';
-            document.getElementById('feedback-container').style.display = 'none';
-            document.getElementById('answer-input-container').style.display = 'flex';
+            if (questionNumberElement) questionNumberElement.textContent = `Question ${currentQuestionIndex + 1}`;
+            if (questionTextElement) questionTextElement.textContent = questions[currentQuestionIndex];
+            const answerInput = document.getElementById('answer-input');
+            if (answerInput) answerInput.value = '';
+            if (feedbackContainer) feedbackContainer.style.display = 'none';
+            if (answerInputContainer) answerInputContainer.style.display = 'flex';
         }
 
         function checkAnswer() {
@@ -299,14 +305,18 @@
             const answer = answerInput.value.trim();
 
             if (answer.toLowerCase() === correctAnswers[currentQuestionIndex].toLowerCase()) {
-                feedbackContainer.textContent = "Correct! Well done!";
-                feedbackContainer.className = "feedback-message correct";
+                if (feedbackContainer) {
+                    feedbackContainer.textContent = "Correct! Well done!";
+                    feedbackContainer.className = "feedback-message correct";
+                }
             } else {
-                feedbackContainer.textContent = "Incorrect, try again!";
-                feedbackContainer.className = "feedback-message incorrect";
+                if (feedbackContainer) {
+                    feedbackContainer.textContent = "Incorrect, try again!";
+                    feedbackContainer.className = "feedback-message incorrect";
+                }
             }
 
-            feedbackContainer.style.display = 'block';
+            if (feedbackContainer) feedbackContainer.style.display = 'block';
 
             // Store the timestamp and mark as answered locally
             questionAnswerTimestampsLocal[currentQuestionIndex] = new Date().toISOString();
@@ -324,10 +334,17 @@
             }
         }
 
-        document.getElementById('send-button').addEventListener('click', checkAnswer);
-        // No need for DOMContentLoaded listener here, as Firebase initialization happens immediately
-        // and onAuthStateChanged will handle subsequent logic.
-        // The first load of question will be triggered by onAuthStateChanged when auth is ready.
+        // Attach event listener for send-button after DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const sendButton = document.getElementById('send-button');
+            if (sendButton) {
+                sendButton.addEventListener('click', checkAnswer);
+            } else {
+                console.error("Error: 'send-button' not found in DOM.");
+            }
+        });
+        // Firebase initialization happens immediately on script load,
+        // onAuthStateChanged will handle subsequent logic and call loadQuestion when ready.
     </script>
 </body>
 </html>
