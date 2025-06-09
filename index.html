@@ -1,9 +1,10 @@
+<!-- index.html -->
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vrijgezellenfeest Ibiza - Vragen voor Aline</title>
+    <title>Bachelor Party Ibiza - Questions for Aline</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,19 +14,19 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .vraag-nummer {
+        .question-number { /* Changed from .vraag-nummer */
             font-size: 1.25rem;
             font-weight: 500;
             color: #6b7280; /* Text Gray 400 */
             margin-bottom: 0.5rem;
         }
-        .antwoord-input-container { /* Nieuwe container voor input en knop */
+        .answer-input-container { /* New container for input and button */
             display: flex;
             align-items: center;
             width: 100%;
             margin-bottom: 1rem;
         }
-        .antwoord-input {
+        .answer-input { /* Changed from .antwoord-input */
             border-radius: 0.5rem 0 0 0.5rem; /* Rounded md left */
             padding: 0.75rem;      /* Padding 3 */
             border: 1px solid #d1d5db;  /* Border Gray 300 */
@@ -34,12 +35,12 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); /* Inner shadow */
             border-right: none; /* Remove right border */
         }
-        .antwoord-input:focus {
+        .answer-input:focus {
             outline: none;
             border-color: #3b82f6;  /* Border Blue 500 */
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* Ring Blue 200 */
         }
-        .verzend-knop {
+        .send-button { /* Changed from .verzend-knop */
             border-radius: 0 0.5rem 0.5rem 0; /* Rounded md right */
             padding: 0.75rem;      /* Padding 3 */
             background-color: #3b82f6;  /* Bg Blue 500 */
@@ -53,10 +54,10 @@
             aspect-ratio: 1; /* Keep it square */
             border: none; /* Remove border */
         }
-        .verzend-knop:hover {
+        .send-button:hover {
             background-color: #2563eb;  /* Bg Blue 700 on hover */
         }
-        .feedback-bericht {
+        .feedback-message { /* Changed from .feedback-bericht */
             margin-top: 1rem;
             font-weight: 500;
             border-radius: 0.375rem; /* rounded-md */
@@ -72,7 +73,7 @@
             color: #b91c1c;          /* text-red-700 */
             border: 1px solid #dc2626;  /* border-red-500 */
         }
-        .overgeslagen {
+        .skipped { /* Changed from .overgeslagen */
             background-color: #fef08a; /* bg-yellow-100 */
             color: #78350f;          /* text-yellow-800 */
             border: 1px solid #fcd34d;  /* border-yellow-300 */
@@ -93,123 +94,163 @@
 <body class="bg-gradient-to-r from-purple-400 to-pink-500 min-h-screen flex justify-center items-center py-10">
     <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
         <h1 class="text-2xl font-semibold text-blue-600 mb-6">Question for the bachelor</h1>
-        <div id="vraag-container" class="mb-6">
-            <p id="vraag-nummer" class="vraag-nummer"></p>
-            <p id="vraag-tekst" class="text-lg text-gray-700"></p>
-            <div class="antwoord-input-container">
-                <input type="text" id="antwoord-input" class="antwoord-input" placeholder="Your answer...">
-                <button id="verzend-knop" class="verzend-knop">
+        <div id="question-container" class="mb-6">
+            <p id="question-number" class="question-number"></p>
+            <p id="question-text" class="text-lg text-gray-700"></p>
+            <div class="answer-input-container">
+                <input type="text" id="answer-input" class="answer-input" placeholder="Your answer...">
+                <button id="send-button" class="send-button">
                     <span class="material-symbols-outlined">send</span>
                 </button>
             </div>
         </div>
-        <div id="feedback-container" class="feedback-bericht" style="display: none;"></div>
+        <div id="feedback-container" class="feedback-message" style="display: none;"></div>
         <div id="error-container" style="display: none;">
-            <p class="text-red-600 font-medium">Er is een fout opgetreden.</p>
+            <p class="text-red-600 font-medium">An error occurred.</p>
         </div>
     </div>
 
     <script>
-        const vragen = [
-            "Wie zal de grootste kater hebben na onze trouw?", // 1
-            "⁠Na hoeveel dates hebben we met elkaar geslapen?", // 2
-            "⁠Wat is Aline haar lievelingsdessert op restaurant?", // 3
-            "⁠Wat wilde Aline later worden als kind?", // 4
-            "⁠Wat is de ultieme droomvakantiebestemming van Aline?", // 5
-            "Hoeveel exen heeft Aline?", // 6
-            "⁠Wat is Aline haar favoriete lingeriesetje uit haar kleerkast?", // 7
-            "⁠Wie zei als eerste: ik hou van jou?", // 8
-            "⁠Waar ging jullie eerste ruzie over?", // 9
-            "Als Aline één maaltijd de rest van haar leven zou moeten eten, welke zou het dan zijn?", // 10
-            "⁠Wat is Aline haar guilty pleasure in haar leven?", // 11
-            "⁠Wat zegt Aline meestal als ze afscheid neemt aan de telefoon?", // 12
-            "⁠Met welke snack mag je Aline s nachts wakker maken?", // 13
-            "⁠Wat is een gek of grappig ritueeltje dat jullie samen hebben?", // 14
-            "Wat is de cupmaat van Aline?", // 15
+        const questions = [
+            "Who will have the biggest hangover after our wedding?", // 1
+            "After how many dates did we sleep together?", // 2
+            "What is Aline's favorite restaurant dessert?", // 3
+            "What did Aline want to be when she grew up?", // 4
+            "What is Aline's ultimate dream vacation destination?", // 5
+            "How many exes does Aline have?", // 6
+            "What is Aline's favorite lingerie set from her closet?", // 7
+            "Who said 'I love you' first?", // 8
+            "What was your first argument about?", // 9
+            "If Aline had to eat one meal for the rest of her life, what would it be?", // 10
+            "What is Aline's guilty pleasure?", // 11
+            "What does Aline usually say when she says goodbye on the phone?", // 12
+            "What snack can wake Aline up at night?", // 13
+            "What is a crazy or funny ritual you have together?", // 14
+            "What is Aline's cup size?", // 15
         ];
 
-        let beantwoordeVragen = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
-        let overgeslagenVragen = JSON.parse(localStorage.getItem('overgeslagenVragen')) || [];
-        let vraagIndex;
-        let eersteLoad = true; // Nieuwe variabele om te controleren of het de eerste keer laden is
+        // IMPORTANT: Update these with the actual paths to your audio files!
+        // These paths are relative to your index.html file.
+        // Example: If your audio files are in a folder named 'audio' next to index.html,
+        // and the file for the first question is 'q0.mp3', then the path would be 'audio/q0.mp3'.
+        const audioPaths = [
+            "audio/0.mp3", // For question 1 (index 0)
+            "audio/1.mp3", // For question 2 (index 1)
+            "audio/2.mp3",
+            "audio/3.mp3",
+            "audio/4.mp3",
+            "audio/5.mp3",
+            "audio/6.mp3",
+            "audio/7.mp3",
+            "audio/8.mp3",
+            "audio/9.mp3",
+            "audio/10.mp3",
+            "audio/11.mp3",
+            "audio/12.mp3",
+            "audio/13.mp3",
+            "audio/14.mp3", // For question 15 (index 14)
+        ];
 
-        function getVraag() {
-            if (beantwoordeVragen.length + overgeslagenVragen.length >= vragen.length) {
-                document.getElementById('vraag-tekst').textContent = "Alle vragen zijn beantwoord of overgeslagen! Bedankt voor het meedoen!";
-                document.getElementById('vraag-nummer').textContent = "";
-                document.getElementById('antwoord-container').style.display = 'none';
-                document.querySelector('.mt-6').style.display = 'none'; // Verberg de link naar overzicht
+        const correctAnswers = [
+            "Elias", // 1
+            "Four", // 2
+            "Warm apple pie with a scoop of vanilla ice cream", // 3
+            "Hairdresser", // 4
+            "Miraflores", // 5
+            "Two", // 6
+            "None, Elias promised to buy one", // 7
+            "Aline", // 8
+            "Elias was angry when Aline was cooking chili con carne", // 9
+            "Pasta", // 10
+            "Watching 'Familie' (TV show)", // 11 (Assuming 'Familie' is the Belgian TV show)
+            "Bye darling", // 12
+            "None - don't wake me up wtf", // 13
+            "Acting silly, ridiculous, and childish together. Super freaky", // 14
+            "The size of Elias' hands and mouth", // 15
+        ];
+
+        let answeredQuestions = JSON.parse(localStorage.getItem('beantwoordeVragen')) || []; // Using old key for compatibility
+        let skippedQuestions = JSON.parse(localStorage.getItem('overgeslagenVragen')) || []; // Using old key for compatibility
+        let questionAnswerTimestamps = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {}; // Using old key
+
+        let currentQuestionIndex; // Renamed from vraagIndex
+        let isFirstLoad = true; // Renamed from eersteLoad
+
+        function loadQuestion() { // Renamed from getVraag
+            if (answeredQuestions.length + skippedQuestions.length >= questions.length) {
+                document.getElementById('question-text').textContent = "All questions have been answered or skipped! Thanks for participating!";
+                document.getElementById('question-number').textContent = "";
+                document.getElementById('answer-input-container').style.display = 'none';
+                document.getElementById('feedback-container').style.display = 'none';
                 return;
             }
 
-            if (eersteLoad) { // Alleen bij de eerste keer laden of refreshen
-                let laagsteNietOvergeslagenIndex = -1;
-                for (let i = 0; i < vragen.length; i++) {
-                    if (!overgeslagenVragen.includes(i)) {
-                        laagsteNietOvergeslagenIndex = i;
+            // Only load a new question on the initial page load
+            if (isFirstLoad) {
+                let lowestNonSkippedIndex = -1;
+                for (let i = 0; i < questions.length; i++) {
+                    if (!skippedQuestions.includes(i)) {
+                        lowestNonSkippedIndex = i;
                         break;
                     }
                 }
 
-                if (laagsteNietOvergeslagenIndex !== -1) {
-                    vraagIndex = laagsteNietOvergeslagenIndex;
+                if (lowestNonSkippedIndex !== -1) {
+                    currentQuestionIndex = lowestNonSkippedIndex;
                 } else {
-                    // Als alle vragen zijn overgeslagen, kunnen we een willekeurige vraag kiezen of een eindbericht tonen.
-                    vraagIndex = Math.floor(Math.random() * vragen.length); // Tijdelijke oplossing
-                    document.getElementById('vraag-tekst').textContent = "Alle vragen zijn overgeslagen, maar hier is er toch een."; //temp
+                    // This case means all questions are either answered or skipped.
+                    document.getElementById('question-text').textContent = "All questions have been skipped! Please reset from the overview page if you wish to answer them.";
+                    document.getElementById('question-number').textContent = "";
+                    document.getElementById('answer-input-container').style.display = 'none';
+                    document.getElementById('feedback-container').style.display = 'none';
+                    return; // Exit if no more questions to show
                 }
-                eersteLoad = false; // Zet op false zodat de vraag niet verandert bij antwoorden
+                isFirstLoad = false; // Set to false so the question doesn't change on answering
             }
 
-            document.getElementById('vraag-nummer').textContent = `Question ${vraagIndex + 1}`;
-            document.getElementById('vraag-tekst').textContent = vragen[vraagIndex];
-            document.getElementById('antwoord-container').style.display = 'flex'; // Zorg dat input en knop zichtbaar zijn
-            document.getElementById('antwoord-input').value = ''; // Clear input field
-            document.getElementById('feedback-container').style.display = 'none'; // Clear feedback
+            document.getElementById('question-number').textContent = `Question ${currentQuestionIndex + 1}`;
+            document.getElementById('question-text').textContent = questions[currentQuestionIndex];
+            document.getElementById('answer-input').value = ''; // Clear input field
+            document.getElementById('feedback-container').style.display = 'none'; // Clear feedback message
+            document.getElementById('answer-input-container').style.display = 'flex'; // Ensure input and button are visible
         }
 
-        function controleerAntwoord() {
-            const antwoordInput = document.getElementById('antwoord-input');
+        function checkAnswer() { // Renamed from controleerAntwoord
+            const answerInput = document.getElementById('answer-input');
             const feedbackContainer = document.getElementById('feedback-container');
-            const antwoord = antwoordInput.value.trim();
+            const answer = answerInput.value.trim();
 
-             // Dummy antwoordencheck.  Pas aan indien je echte antwoorden hebt.
-            const correcteAntwoorden = [
-                "Elias", // 1
-                "⁠Vier", // 2
-                "Warme appeltaart met bolletje vanille ijs", // 3
-                "⁠Kapster", // 4
-                "Miraflores", // 5
-                "Twee", // 6
-                "⁠Geen, Elias heeft beloofd er eentje te kopen", // 7
-                "Aline", // 8
-                "⁠Elias was kwaad toen Aline chili con carne aan het koken was", // 9
-                "Pasta", // 10
-                "⁠Familie kijken", // 11
-                "⁠Dag liefje", // 12
-                "⁠Geen enkele - maak mij niet wakker wtf", // 13
-                "⁠Samen gek, belachelijk en kinderachtig doen. Superfreaky", // 14
-                "De grootte van Elias zijn handen en mond", // 15
-            ];
-
-            if (antwoord.toLowerCase() === correcteAntwoorden[vraagIndex].toLowerCase()) { // Vereenvoudigde check
-                feedbackContainer.textContent = "Correct! Goed gedaan!";
-                feedbackContainer.className = "feedback-bericht correct";
+            if (answer.toLowerCase() === correctAnswers[currentQuestionIndex].toLowerCase()) {
+                feedbackContainer.textContent = "Correct! Well done!";
+                feedbackContainer.className = "feedback-message correct";
             } else {
-                feedbackContainer.textContent = "Incorrect, probeer nog eens!";
-                feedbackContainer.className = "feedback-bericht incorrect";
+                feedbackContainer.textContent = "Incorrect, try again!";
+                feedbackContainer.className = "feedback-message incorrect";
             }
 
             feedbackContainer.style.display = 'block';
-            localStorage.setItem('laatstBeantwoordeVraag', vraagIndex); // Store the last answered question
-            setTimeout(() => {
-                getVraag();
-            }, 3000);
+
+            // Store the timestamp and mark as answered
+            questionAnswerTimestamps[currentQuestionIndex] = new Date().toISOString();
+            localStorage.setItem('vraagAntwoordTimestamps', JSON.stringify(questionAnswerTimestamps));
+
+            // Add to answered questions if not already there
+            if (!answeredQuestions.includes(currentQuestionIndex)) {
+                answeredQuestions.push(currentQuestionIndex);
+                localStorage.setItem('beantwoordeVragen', JSON.stringify(answeredQuestions));
+            }
+
+            // Play audio if available
+            if (audioPaths[currentQuestionIndex]) {
+                const audio = new Audio(audioPaths[currentQuestionIndex]);
+                audio.play().catch(e => console.error("Audio playback failed:", e));
+            }
         }
 
-        document.getElementById('verzend-knop').addEventListener('click', controleerAntwoord);
+        document.getElementById('send-button').addEventListener('click', checkAnswer); // Renamed from verzend-knop
 
-        getVraag();
+        // Initial load of the question when the page loads
+        document.addEventListener('DOMContentLoaded', loadQuestion);
     </script>
 </body>
 </html>
