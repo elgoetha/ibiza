@@ -79,13 +79,33 @@
             border: 1px solid #fcd34d;
         }
     </style>
+</head>
+<body class="bg-gradient-to-r from-purple-400 to-pink-500 min-h-screen flex justify-center items-center py-10">
+    <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
+        <h1 class="text-2xl font-semibold text-blue-600 mb-6">Question for the bachelor</h1>
+        <div id="question-container" class="mb-6">
+            <p id="question-number" class="question-number"></p>
+            <p id="question-text" class="text-lg text-gray-700"></p>
+            <div class="answer-input-container">
+                <input type="text" id="answer-input" class="answer-input" placeholder="Your answer...">
+                <button id="send-button" class="send-button">
+                    <span class="material-symbols-outlined">send</span>
+                </button>
+            </div>
+        </div>
+        <div id="feedback-container" class="feedback-message" style="display: none;"></div>
+        <div id="error-container" class="feedback-message incorrect" style="display: none;">
+            <p class="text-red-600 font-medium"></p>
+        </div>
+    </div>
+
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Tailwind CSS configuration
+        // Tailwind CSS configuration (moved to global scope if needed, or define in DOMContentLoaded)
         tailwind.config = {
             theme: {
                 extend: {
@@ -96,7 +116,7 @@
             },
         }
 
-        // Firebase Initialization
+        // Firebase Initialization (direct initialization)
         const appId = "ibiza-cfb1f"; // Your Firebase Project ID
         const firebaseConfig = {
             apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
@@ -113,7 +133,7 @@
 
         let authReady = false;
         let unsubscribeFirestore = null;
-        let initialQuestionLoaded = false; // Flag to ensure the question is loaded only once on initial auth
+        let initialQuestionLoaded = false;
 
         const questions = [
             "Who will have the biggest hangover after our wedding?", // 1
@@ -179,39 +199,48 @@
 
         let currentQuestionIndex;
 
-        // Set up Firebase Auth listener
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log("Firebase Auth State Changed: Logged in as", user.uid);
-                authReady = true;
-                setupFirestoreListener();
-                if (!initialQuestionLoaded) {
-                    loadQuestion();
-                    initialQuestionLoaded = true;
-                }
+        // Set up Firebase Auth listener inside DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const sendButton = document.getElementById('send-button');
+            if (sendButton) {
+                sendButton.addEventListener('click', checkAnswer);
             } else {
-                console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
-                try {
-                    // Only attempt anonymous sign-in if not currently authenticated
-                    if (!auth.currentUser) {
-                         // __initial_auth_token is undefined when self-hosting, so it will fall back to signInAnonymously
-                        // Note: If you face issues with signInAnonymously, ensure it's enabled in Firebase Auth settings.
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                             await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error during anonymous sign-in:", error);
-                    const errorContainer = document.getElementById('error-container');
-                    if (errorContainer) {
-                        errorContainer.style.display = 'block';
-                        errorContainer.textContent = `Authentication failed: ${error.message}. Please ensure Anonymous Authentication is enabled in your Firebase project and API Key is correct.`;
-                    }
-                    authReady = false;
-                }
+                console.error("Error: 'send-button' not found in DOM when attaching listener.");
             }
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    console.log("Firebase Auth State Changed: Logged in as", user.uid);
+                    authReady = true;
+                    setupFirestoreListener();
+                    if (!initialQuestionLoaded) {
+                        loadQuestion();
+                        initialQuestionLoaded = true;
+                    }
+                } else {
+                    console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
+                    try {
+                        // Only attempt anonymous sign-in if not currently authenticated
+                        if (!auth.currentUser) {
+                            // __initial_auth_token is undefined when self-hosting, so it will fall back to signInAnonymously
+                            // Note: If you face issues with signInAnonymously, ensure it's enabled in Firebase Auth settings.
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error during anonymous sign-in:", error);
+                        const errorContainer = document.getElementById('error-container');
+                        if (errorContainer && errorContainer.querySelector('p')) {
+                            errorContainer.querySelector('p').textContent = `Authentication failed: ${error.message}. Please ensure Anonymous Authentication is enabled in your Firebase project and API Key is correct.`;
+                            errorContainer.style.display = 'block';
+                        }
+                        authReady = false;
+                    }
+                }
+            });
         });
 
 
@@ -229,6 +258,11 @@
                 } else {
                     skippedQuestionsShared = [];
                     console.log("No skipped questions document found in Firestore.");
+                    // Create the document if it doesn't exist (e.g., on first run)
+                    // This is a common practice to avoid "No skipped questions document found" on initial load
+                    doc(db, `artifacts/${appId}/public/data/skipped_questions/status`).set({ skippedIndices: [] })
+                        .then(() => console.log("Skipped questions document created with empty array."))
+                        .catch(e => console.error("Error creating skipped questions document:", e));
                 }
                 // Reload the question only if it's not the very first load
                 // This ensures the question is re-evaluated based on new skipped state from other devices
@@ -238,9 +272,9 @@
             }, (error) => {
                 console.error("Error fetching skipped questions from Firestore:", error);
                 const errorContainer = document.getElementById('error-container');
-                if (errorContainer) {
+                if (errorContainer && errorContainer.querySelector('p')) {
+                    errorContainer.querySelector('p').textContent = `Error loading skipped questions: ${error.message}`;
                     errorContainer.style.display = 'block';
-                    errorContainer.textContent = `Error loading skipped questions: ${error.message}`;
                 }
             });
         }
@@ -261,12 +295,15 @@
             const questionNumberElement = document.getElementById('question-number');
             const answerInputContainer = document.getElementById('answer-input-container');
             const feedbackContainer = document.getElementById('feedback-container');
+            const errorContainer = document.getElementById('error-container');
+
 
             if (remainingQuestions.length === 0) {
                 if (questionTextElement) questionTextElement.textContent = "All questions have been answered or skipped! Thanks for participating!";
                 if (questionNumberElement) questionNumberElement.textContent = "";
                 if (answerInputContainer) answerInputContainer.style.display = 'none';
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
+                if (errorContainer) errorContainer.style.display = 'none'; // Hide error if all questions are done
                 return;
             }
 
@@ -274,7 +311,8 @@
             let lowestNonSkippedIndex = -1;
             for (let i = 0; i < questions.length; i++) {
                 // Only consider questions not skipped globally (via Firestore)
-                if (!skippedQuestionsShared.includes(i)) {
+                // and also not answered locally
+                if (!skippedQuestionsShared.includes(i) && !answeredQuestionsLocal.includes(i)) {
                     lowestNonSkippedIndex = i;
                     break;
                 }
@@ -284,10 +322,11 @@
                 currentQuestionIndex = lowestNonSkippedIndex;
             } else {
                 // This case means all questions are either answered or skipped globally.
-                if (questionTextElement) questionTextElement.textContent = "All questions have been skipped! Please reset from the overview page if you wish to answer them.";
+                if (questionTextElement) questionTextElement.textContent = "All questions have been skipped or answered! Please reset from the overview page if you wish to answer them.";
                 if (questionNumberElement) questionNumberElement.textContent = "";
                 if (answerInputContainer) answerInputContainer.style.display = 'none';
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
+                if (errorContainer) errorContainer.style.display = 'none'; // Hide error if all questions are done
                 return;
             }
 
@@ -297,6 +336,7 @@
             if (answerInput) answerInput.value = '';
             if (feedbackContainer) feedbackContainer.style.display = 'none';
             if (answerInputContainer) answerInputContainer.style.display = 'flex';
+            if (errorContainer) errorContainer.style.display = 'none'; // Hide error if a question is successfully loaded
         }
 
         function checkAnswer() {
@@ -334,17 +374,7 @@
             }
         }
 
-        // Attach event listener for send-button after DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            const sendButton = document.getElementById('send-button');
-            if (sendButton) {
-                sendButton.addEventListener('click', checkAnswer);
-            } else {
-                console.error("Error: 'send-button' not found in DOM.");
-            }
-        });
-        // Firebase initialization happens immediately on script load,
-        // onAuthStateChanged will handle subsequent logic and call loadQuestion when ready.
+        // The send button listener is now attached within the DOMContentLoaded block above.
     </script>
 </body>
 </html>
