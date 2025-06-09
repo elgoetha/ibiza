@@ -127,9 +127,10 @@
         };
         // EINDE VAN FIREBASE CONFIGURATIE
 
-        let app;
-        let db;
-        let auth;
+        const app = initializeApp(firebaseConfig); // Initialize Firebase app
+        const db = getFirestore(app); // Get Firestore instance
+        const auth = getAuth(app); // Get Auth instance
+
         let authReady = false; // Flag to ensure Firestore operations happen after auth
         let unsubscribeFirestore = null; // To store the unsubscribe function for Firestore listener
 
@@ -159,44 +160,35 @@
         // Shared state for skipped questions (from Firestore)
         let skippedQuestionsShared = [];
 
-        async function initFirebase() {
-            try {
-                // Initialize Firebase app only once
-                if (!app) {
-                    app = initializeApp(firebaseConfig);
-                    db = getFirestore(app);
-                    auth = getAuth(app);
-                }
-
-                // Sign in if not already signed in
-                if (!auth.currentUser) {
+        // Set up Firebase Auth listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("Firebase Auth State Changed: Logged in as", user.uid);
+                authReady = true;
+                setupFirestoreListener(); // Setup listener after auth is ready
+            } else {
+                console.log("Firebase Auth State Changed: Not logged in, attempting anonymous sign-in.");
+                try {
+                    // Attempt anonymous sign-in if not authenticated
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
                     } else {
                         await signInAnonymously(auth);
                     }
+                } catch (error) {
+                    console.error("Error during anonymous sign-in:", error);
+                    // No need to show error here, onAuthStateChanged will be called again with null user if it failed
+                    authReady = false; // Ensure authReady is false if sign-in fails
                 }
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        console.log("Firebase Auth State Changed: Logged in as", user.uid);
-                        authReady = true;
-                        // Setup Firestore listener only after authentication
-                        setupFirestoreListener();
-                    } else {
-                        console.log("Firebase Auth State Changed: Logged out or no user");
-                        authReady = false;
-                        if (unsubscribeFirestore) {
-                            unsubscribeFirestore(); // Clean up listener on logout
-                        }
+                if (!auth.currentUser) { // If still no user after attempt
+                    authReady = false;
+                    if (unsubscribeFirestore) {
+                        unsubscribeFirestore(); // Clean up listener if sign-in fails
                     }
-                });
-
-            } catch (error) {
-                console.error("Error initializing Firebase or signing in:", error);
-                // Display error to the user if needed
+                }
             }
-        }
+        });
+
 
         function setupFirestoreListener() {
             if (unsubscribeFirestore) {
