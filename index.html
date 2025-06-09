@@ -191,6 +191,7 @@
         ];
 
         // Local storage for answered questions and timestamps (per device/browser)
+        // These are only used for display on overzicht.html, not for progression control in index.html
         let answeredQuestionsLocal = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
         let questionAnswerTimestampsLocal = JSON.parse(localStorage.getItem('vraagAntwoordTimestamps')) || {};
 
@@ -212,7 +213,7 @@
                 if (user) {
                     console.log("Firebase Auth State Changed: Logged in as", user.uid);
                     authReady = true;
-                    setupFirestoreListener();
+                    setupFirestoreListener(); // Setup listener after auth is ready
                     if (!initialQuestionLoaded) {
                         loadQuestion();
                         initialQuestionLoaded = true;
@@ -257,10 +258,9 @@
                     console.log("Skipped questions updated from Firestore:", skippedQuestionsShared);
                 } else {
                     skippedQuestionsShared = [];
-                    console.log("No skipped questions document found in Firestore.");
+                    console.log("No skipped questions document found in Firestore. Initializing it.");
                     // Create the document if it doesn't exist (e.g., on first run)
-                    // This is a common practice to avoid "No skipped questions document found" on initial load
-                    doc(db, `artifacts/${appId}/public/data/skipped_questions/status`).set({ skippedIndices: [] })
+                    setDoc(doc(db, `artifacts/${appId}/public/data/skipped_questions/status`), { skippedIndices: [] })
                         .then(() => console.log("Skipped questions document created with empty array."))
                         .catch(e => console.error("Error creating skipped questions document:", e));
                 }
@@ -286,10 +286,15 @@
                 return;
             }
 
-            // Check if all questions are answered locally or globally skipped
-            const remainingQuestions = questions.filter((_, i) =>
-                !answeredQuestionsLocal.includes(i) && !skippedQuestionsShared.includes(i)
-            );
+            // Find the lowest-numbered question that HAS NOT been skipped globally
+            // We NO LONGER check answeredQuestionsLocal here to control progression
+            let lowestNonSkippedIndex = -1;
+            for (let i = 0; i < questions.length; i++) {
+                if (!skippedQuestionsShared.includes(i)) {
+                    lowestNonSkippedIndex = i;
+                    break;
+                }
+            }
 
             const questionTextElement = document.getElementById('question-text');
             const questionNumberElement = document.getElementById('question-number');
@@ -298,28 +303,15 @@
             const errorContainer = document.getElementById('error-container');
 
 
-            if (remainingQuestions.length === 0) {
-                if (questionTextElement) questionTextElement.textContent = "All questions have been answered or skipped! Thanks for participating!";
-                if (questionNumberElement) questionNumberElement.textContent = "";
-                if (answerInputContainer) answerInputContainer.style.display = 'none';
-                if (feedbackContainer) feedbackContainer.style.display = 'none';
-                if (errorContainer) errorContainer.style.display = 'none'; // Hide error if all questions are done
-                return;
-            }
-
-            // Find the lowest-numbered question that hasn't been skipped globally
-            let lowestNonSkippedIndex = -1;
-            for (let i = 0; i < questions.length; i++) {
-                // Only consider questions not skipped globally (via Firestore)
-                // and also not answered locally
-                if (!skippedQuestionsShared.includes(i) && !answeredQuestionsLocal.includes(i)) {
-                    lowestNonSkippedIndex = i;
-                    break;
-                }
-            }
-
             if (lowestNonSkippedIndex !== -1) {
                 currentQuestionIndex = lowestNonSkippedIndex;
+                if (questionNumberElement) questionNumberElement.textContent = `Question ${currentQuestionIndex + 1}`;
+                if (questionTextElement) questionTextElement.textContent = questions[currentQuestionIndex];
+                const answerInput = document.getElementById('answer-input');
+                if (answerInput) answerInput.value = '';
+                if (feedbackContainer) feedbackContainer.style.display = 'none';
+                if (answerInputContainer) answerInputContainer.style.display = 'flex';
+                if (errorContainer) errorContainer.style.display = 'none'; // Hide error if a question is successfully loaded
             } else {
                 // This case means all questions are either answered or skipped globally.
                 if (questionTextElement) questionTextElement.textContent = "All questions have been skipped or answered! Please reset from the overview page if you wish to answer them.";
@@ -327,16 +319,7 @@
                 if (answerInputContainer) answerInputContainer.style.display = 'none';
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
                 if (errorContainer) errorContainer.style.display = 'none'; // Hide error if all questions are done
-                return;
             }
-
-            if (questionNumberElement) questionNumberElement.textContent = `Question ${currentQuestionIndex + 1}`;
-            if (questionTextElement) questionTextElement.textContent = questions[currentQuestionIndex];
-            const answerInput = document.getElementById('answer-input');
-            if (answerInput) answerInput.value = '';
-            if (feedbackContainer) feedbackContainer.style.display = 'none';
-            if (answerInputContainer) answerInputContainer.style.display = 'flex';
-            if (errorContainer) errorContainer.style.display = 'none'; // Hide error if a question is successfully loaded
         }
 
         function checkAnswer() {
@@ -358,10 +341,11 @@
 
             if (feedbackContainer) feedbackContainer.style.display = 'block';
 
-            // Store the timestamp and mark as answered locally
+            // Store the timestamp locally (for overzicht.html display only)
             questionAnswerTimestampsLocal[currentQuestionIndex] = new Date().toISOString();
             localStorage.setItem('vraagAntwoordTimestamps', JSON.stringify(questionAnswerTimestampsLocal));
 
+            // Mark as answered locally (for overzicht.html display only)
             if (!answeredQuestionsLocal.includes(currentQuestionIndex)) {
                 answeredQuestionsLocal.push(currentQuestionIndex);
                 localStorage.setItem('beantwoordeVragen', JSON.stringify(answeredQuestionsLocal));
@@ -372,6 +356,8 @@
                 const audio = new Audio(audioPaths[currentQuestionIndex]);
                 audio.play().catch(e => console.error("Audio playback failed:", e));
             }
+
+            // IMPORTANT: No call to loadQuestion() here! The question stays until manual refresh or skip on overview page.
         }
 
         // The send button listener is now attached within the DOMContentLoaded block above.
