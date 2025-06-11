@@ -105,6 +105,7 @@
 <body class="bg-gradient-to-r from-purple-400 to-pink-500 min-h-screen flex justify-center items-center py-10">
     <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
         <h1 class="text-2xl font-semibold text-blue-600 mb-6">Question for the bachelor</h1>
+        <p class="text-gray-700 mb-4">Ask Elias the following question and get a free shot if he answers correctly!</p>
         <div id="question-container" class="mb-6">
             <p id="question-number" class="question-number"></p>
             <p id="question-text" class="text-lg text-gray-700"></p>
@@ -117,7 +118,7 @@
             <p class="text-red-600 font-medium"></p>
         </div>
         <button id="play-audio-button" class="play-audio-button" style="display: none;">
-            <span class="material-symbols-outlined">play_arrow</span> Play Answer
+            <span class="material-symbols-outlined">play_arrow</span> Listen to what Aline has to say... (in Dutch)
         </button>
     </div>
 
@@ -411,7 +412,7 @@
             // Check if selected answer is correct
             if (selectedAnswer.toLowerCase() === correctAnswers[currentQuestionIndex].toLowerCase()) {
                 if (feedbackContainer) {
-                    feedbackContainer.textContent = "Correct! Well done!";
+                    feedbackContainer.textContent = "Correct! You just won a free shot!"; // Changed text
                     feedbackContainer.className = "feedback-message correct";
                 }
                 // Highlight the correct option
@@ -424,7 +425,7 @@
                 }
             } else {
                 if (feedbackContainer) {
-                    feedbackContainer.textContent = "Incorrect, try again!";
+                    feedbackContainer.textContent = "Incorrect! Elias needs to take a shot!"; // Changed text
                     feedbackContainer.className = "feedback-message incorrect";
                 }
                 // Highlight incorrect selected option and correct one
