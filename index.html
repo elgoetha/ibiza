@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bachelor Party Ibiza - Questions for Aline</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -128,7 +129,7 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Tailwind CSS configuration
+        // Tailwind CSS configuration (moved to global scope if needed, or define in DOMContentLoaded)
         tailwind.config = {
             theme: {
                 extend: {
@@ -330,7 +331,7 @@
                 console.error("Error fetching skipped questions from Firestore:", error);
                 const errorContainer = document.getElementById('error-container');
                 if (errorContainer && errorContainer.querySelector('p')) {
-                    errorContainer.querySelector('p').textContent = `Error loading skipped questions: ${error.message}`;
+                    errorContainer.querySelector('p').textContent = `Error loading skipped questions: ${e.message}`;
                     errorContainer.style.display = 'block';
                 }
             });
