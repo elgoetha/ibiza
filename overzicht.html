@@ -286,11 +286,10 @@
                 questionItem.className = 'question-item';
                 questionItem.innerHTML = `<p class="question-text">${index + 1}. ${question}</p>`;
 
-                if (answeredQuestionsLocal.includes(index)) {
-                    questionItem.classList.add('answered');
-                    const timestamp = questionAnswerTimestampsLocal[index] ? new Date(questionAnswerTimestampsLocal[index]).toLocaleString() : 'Unknown';
-                    questionItem.innerHTML += `<span class="text-green-600 font-medium">Answered on: ${timestamp}</span>`;
-                } else if (skippedQuestionsShared.includes(index)) { // Use shared state for skipped
+                // REMOVED: Display of "Answered on: <timestamp>"
+                // The 'answered' class and its associated timestamp display are removed here.
+
+                if (skippedQuestionsShared.includes(index)) { // Use shared state for skipped
                     questionItem.classList.add('skipped');
                     questionItem.innerHTML += `<span class="text-yellow-800 font-medium">Skipped</span>`;
                     const unskipButton = document.createElement('button');
