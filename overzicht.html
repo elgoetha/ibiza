@@ -111,9 +111,9 @@
 
     <script type="module">
         // Firebase SDK imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } = "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } = "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } = "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Tailwind CSS configuration (moved to global scope if needed, or define in DOMContentLoaded)
         tailwind.config = {
@@ -246,7 +246,7 @@
                 // Display error to the user if needed
                 const errorContainer = document.querySelector('.feedback-message.incorrect');
                 if (errorContainer) {
-                    errorContainer.textContent = `Error fetching skipped questions: ${error.message}`;
+                    errorContainer.textContent = `Error fetching skipped questions: ${e.message}`;
                     errorContainer.style.display = 'block';
                 }
             });
@@ -267,7 +267,7 @@
                 // Display error to the user if needed
                 const errorContainer = document.querySelector('.feedback-message.incorrect');
                 if (errorContainer) {
-                    errorContainer.textContent = `Error updating skipped questions: ${error.message}`;
+                    errorContainer.textContent = `Error updating skipped questions: ${e.message}`;
                     errorContainer.style.display = 'block';
                 }
             }
