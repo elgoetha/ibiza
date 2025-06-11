@@ -20,43 +20,46 @@
             color: #6b7280;
             margin-bottom: 0.5rem;
         }
-        .answer-input-container {
+        .options-container { /* New style for multiple choice options */
             display: flex;
-            align-items: center;
-            width: 100%;
+            flex-direction: column;
+            gap: 0.75rem; /* Space-y-3 equivalent */
             margin-bottom: 1rem;
         }
-        .answer-input {
-            border-radius: 0.5rem 0 0 0.5rem;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            width: 100%;
-            font-size: 1rem;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
-            border-right: none;
-        }
-        .answer-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-        }
-        .send-button {
-            border-radius: 0 0.5rem 0.5rem 0;
-            padding: 0.75rem;
-            background-color: #3b82f6;
-            color: #fff;
-            cursor: pointer;
+        .option-button {
             display: flex;
             align-items: center;
             justify-content: center;
-            transition-duration: 300ms;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            aspect-ratio: 1;
-            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #e2e8f0; /* bg-gray-200 */
+            color: #2d3748; /* text-gray-800 */
+            border: 1px solid #cbd5e0; /* border-gray-300 */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+            font-size: 1rem;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); /* shadow-sm */
         }
-        .send-button:hover {
-            background-color: #2563eb;
+        .option-button:hover:not(.disabled) {
+            background-color: #d1d5db; /* bg-gray-300 on hover */
+            border-color: #a0aec0; /* border-gray-400 */
         }
+        .option-button.correct-feedback {
+            background-color: #a7f3d0; /* bg-green-200 */
+            border-color: #34d399; /* border-green-500 */
+            color: #065f46; /* text-green-800 */
+        }
+        .option-button.incorrect-feedback {
+            background-color: #fecaca; /* bg-red-200 */
+            border-color: #ef4444; /* border-red-500 */
+            color: #991b1b; /* text-red-800 */
+        }
+        .option-button.disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        /* General feedback messages - kept for consistency, though buttons will show feedback now */
         .feedback-message {
             margin-top: 1rem;
             font-weight: 500;
@@ -105,11 +108,8 @@
         <div id="question-container" class="mb-6">
             <p id="question-number" class="question-number"></p>
             <p id="question-text" class="text-lg text-gray-700"></p>
-            <div class="answer-input-container">
-                <input type="text" id="answer-input" class="answer-input" placeholder="Your answer...">
-                <button id="send-button" class="send-button">
-                    <span class="material-symbols-outlined">send</span>
-                </button>
+            <div id="options-container" class="options-container">
+                <!-- Multiple choice options will be dynamically loaded here -->
             </div>
         </div>
         <div id="feedback-container" class="feedback-message" style="display: none;"></div>
@@ -127,7 +127,7 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Tailwind CSS configuration (moved to global scope if needed, or define in DOMContentLoaded)
+        // Tailwind CSS configuration
         tailwind.config = {
             theme: {
                 extend: {
@@ -138,7 +138,7 @@
             },
         }
 
-        // Firebase Initialization (direct initialization)
+        // Firebase Initialization
         const appId = "ibiza-cfb1f"; // Your Firebase Project ID
         const firebaseConfig = {
             apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
@@ -212,6 +212,25 @@
             "The size of Elias' hands and mouth", // 15
         ];
 
+        // New array for multiple choice options
+        const questionOptions = [
+            ["Elias", "Aline"], // Q1
+            ["Two", "Three", "Four"], // Q2
+            ["Warm apple pie with a scoop of vanilla ice cream", "Dame Blanche", "Fruit salad"], // Q3
+            ["Hairdresser", "Nurse", "Teacher"], // Q4
+            ["Miraflores", "Bangkok", "Bangtits"], // Q5
+            ["Two", "Nine", "Four"], // Q6
+            ["None, Elias promised to buy one", "The one with the pictures of cats", "The fishnets"], // Q7
+            ["Aline", "Elias"], // Q8
+            ["Elias was angry when Aline was cooking chili con carne", "Naomi", "Tracy"], // Q9
+            ["Pasta", "BELGIAN fries", "Shit with erweeten"], // Q10
+            ["Watching 'Familie' (TV show)", "Gossipping", "Alcohol"], // Q11
+            ["Bye darling", "Drive safely", "Don’t do drugs"], // Q12
+            ["None - don't wake me up wtf", "Bitterballs", "Creampie"], // Q13
+            ["Acting silly, ridiculous, and childish together. Super freaky", "Falling asleep after sex", "Exchanging each other’s clothes"], // Q14
+            ["The size of Elias' hands and mouth", "HH88", "E40"] // Q15
+        ];
+
         // Local storage for answered questions and timestamps (per device/browser)
         // These are only used for display on overzicht.html, not for progression control in index.html
         let answeredQuestionsLocal = JSON.parse(localStorage.getItem('beantwoordeVragen')) || [];
@@ -222,15 +241,17 @@
 
         let currentQuestionIndex;
 
+        // Function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+            return array;
+        }
+
         // Set up Firebase Auth listener inside DOMContentLoaded
         document.addEventListener('DOMContentLoaded', () => {
-            const sendButton = document.getElementById('send-button');
-            if (sendButton) {
-                sendButton.addEventListener('click', checkAnswer);
-            } else {
-                console.error("Error: 'send-button' not found in DOM when attaching listener.");
-            }
-
             const playAudioButton = document.getElementById('play-audio-button');
             if (playAudioButton) {
                 playAudioButton.addEventListener('click', () => {
@@ -322,7 +343,6 @@
             }
 
             // Find the lowest-numbered question that HAS NOT been skipped globally
-            // We NO LONGER check answeredQuestionsLocal here to control progression
             let lowestNonSkippedIndex = -1;
             for (let i = 0; i < questions.length; i++) {
                 if (!skippedQuestionsShared.includes(i)) {
@@ -333,48 +353,90 @@
 
             const questionTextElement = document.getElementById('question-text');
             const questionNumberElement = document.getElementById('question-number');
-            const answerInputContainer = document.getElementById('answer-input-container');
+            const optionsContainer = document.getElementById('options-container'); // Get the new options container
             const feedbackContainer = document.getElementById('feedback-container');
             const errorContainer = document.getElementById('error-container');
             const playAudioButton = document.getElementById('play-audio-button');
 
+            // Clear previous options
+            if (optionsContainer) {
+                optionsContainer.innerHTML = '';
+            }
 
             if (lowestNonSkippedIndex !== -1) {
                 currentQuestionIndex = lowestNonSkippedIndex;
                 if (questionNumberElement) questionNumberElement.textContent = `Question ${currentQuestionIndex + 1}`;
                 if (questionTextElement) questionTextElement.textContent = questions[currentQuestionIndex];
-                const answerInput = document.getElementById('answer-input');
-                if (answerInput) answerInput.value = '';
+                
+                // Dynamically create and append multiple choice buttons
+                if (optionsContainer) {
+                    const optionsToRender = shuffleArray([...questionOptions[currentQuestionIndex]]); // Shuffle options for display
+                    optionsToRender.forEach(option => {
+                        const button = document.createElement('button');
+                        button.className = 'option-button';
+                        button.textContent = option;
+                        button.addEventListener('click', () => checkAnswer(option)); // Pass the selected option
+                        optionsContainer.appendChild(button);
+                    });
+                }
+                
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
-                if (answerInputContainer) answerInputContainer.style.display = 'flex';
+                if (optionsContainer) optionsContainer.style.display = 'flex'; // Ensure options container is visible
                 if (errorContainer) errorContainer.style.display = 'none'; // Hide error if a question is successfully loaded
                 if (playAudioButton) playAudioButton.style.display = 'none'; // Hide play button for new question
             } else {
                 // This case means all questions are either answered or skipped globally.
                 if (questionTextElement) questionTextElement.textContent = "All questions have been skipped or answered! Please reset from the overview page if you wish to answer them.";
                 if (questionNumberElement) questionNumberElement.textContent = "";
-                if (answerInputContainer) answerInputContainer.style.display = 'none';
+                if (optionsContainer) optionsContainer.style.display = 'none'; // Hide options container
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
                 if (errorContainer) errorContainer.style.display = 'none'; // Hide error if all questions are done
                 if (playAudioButton) playAudioButton.style.display = 'none'; // Hide play button
             }
         }
 
-        function checkAnswer() {
-            const answerInput = document.getElementById('answer-input');
+        function checkAnswer(selectedAnswer) { // Now accepts selectedAnswer as an argument
             const feedbackContainer = document.getElementById('feedback-container');
+            const optionsContainer = document.getElementById('options-container');
             const playAudioButton = document.getElementById('play-audio-button');
-            const answer = answerInput.value.trim();
 
-            if (answer.toLowerCase() === correctAnswers[currentQuestionIndex].toLowerCase()) {
+            // Disable all option buttons after selection
+            if (optionsContainer) {
+                Array.from(optionsContainer.children).forEach(button => {
+                    button.classList.add('disabled');
+                    button.style.pointerEvents = 'none'; // Prevent further clicks
+                });
+            }
+
+            // Check if selected answer is correct
+            if (selectedAnswer.toLowerCase() === correctAnswers[currentQuestionIndex].toLowerCase()) {
                 if (feedbackContainer) {
                     feedbackContainer.textContent = "Correct! Well done!";
                     feedbackContainer.className = "feedback-message correct";
+                }
+                // Highlight the correct option
+                if (optionsContainer) {
+                    Array.from(optionsContainer.children).forEach(button => {
+                        if (button.textContent.toLowerCase() === selectedAnswer.toLowerCase()) {
+                            button.classList.add('correct-feedback');
+                        }
+                    });
                 }
             } else {
                 if (feedbackContainer) {
                     feedbackContainer.textContent = "Incorrect, try again!";
                     feedbackContainer.className = "feedback-message incorrect";
+                }
+                // Highlight incorrect selected option and correct one
+                if (optionsContainer) {
+                    Array.from(optionsContainer.children).forEach(button => {
+                        if (button.textContent.toLowerCase() === selectedAnswer.toLowerCase()) {
+                            button.classList.add('incorrect-feedback'); // Highlight incorrect
+                        }
+                        if (button.textContent.toLowerCase() === correctAnswers[currentQuestionIndex].toLowerCase()) {
+                            button.classList.add('correct-feedback'); // Show correct
+                        }
+                    });
                 }
             }
 
@@ -397,7 +459,7 @@
             // Audio will only play when the playAudioButton is clicked.
         }
 
-        // The send button listener is now attached within the DOMContentLoaded block above.
+        // Removed the send-button listener as options now trigger checkAnswer
     </script>
 </body>
 </html>
