@@ -139,7 +139,7 @@
             },
         }
 
-        // Firebase Initialization
+        // Firebase Initialization (direct initialization)
         const appId = "ibiza-cfb1f"; // Your Firebase Project ID
         const firebaseConfig = {
             apiKey: "AIzaSyC0O0gFyzUx8E1L3wKRzzp8Opi5cnF3N_8",
@@ -387,7 +387,7 @@
                 if (playAudioButton) playAudioButton.style.display = 'none'; // Hide play button for new question
             } else {
                 // This case means all questions are either answered or skipped globally.
-                if (questionTextElement) questionTextElement.textContent = "All questions have been skipped or answered! Please reset from the overview page if you wish to answer them.";
+                if (questionTextElement) questionTextElement.textContent = "Sorry, we're not playing right now. Please try again later!"; // Changed text
                 if (questionNumberElement) questionNumberElement.textContent = "";
                 if (optionsContainer) optionsContainer.style.display = 'none'; // Hide options container
                 if (feedbackContainer) feedbackContainer.style.display = 'none';
